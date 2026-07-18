@@ -108,8 +108,6 @@ Ask these in conversation, not as a wall of questions at once — a natural back
 
 **Done when:** all five checks pass.
 
-**Done when:** all four checks pass.
-
 ---
 
 ## Step 4 — Register the vault in the user-global CLAUDE.md
