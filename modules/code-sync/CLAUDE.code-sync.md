@@ -43,9 +43,18 @@ The project code lives at the path in `wiki-state.json → project_repo`. Code i
 <!--
   {{SYNC_TRIAGE_RULES}}: repo-specific noise patterns to skip by default, e.g.
   "[CHECK]-prefixed commits (data validation runs, not code changes)", "chore:/version-bump
-  commits", "formatting-only diffs". Filled in during Init Interview, refined as real
-  Syncs reveal patterns that weren't anticipated.
+  commits", "formatting-only diffs". Filled in during Init Interview, refined via the
+  "set commit noise" flow below.
 -->
+
+## Tuning sync noise — trigger phrase: "set commit noise"
+
+The noise rules start rough (often empty — "refine after the first few real Syncs") and this is the defined refine action. When the human says **"set commit noise"** (or any similar phrasing — this is a convention, not a parser):
+
+1. Read the current noise rules from this file's Sync step 2.
+2. Scan the tracked repo's recent history (`git log --oneline` since `last_synced_sha`, or the last ~200 commits if that range is thin) and tally recurring patterns: prefix conventions (`chore:`, `[skip ci]`), bot/version-bump commits, formatting-only changes. Spot-check a few commits per pattern to confirm they really carry no knowledge.
+3. Present the observed patterns as a multi-select question (interactive question tool if the environment has one), each labeled with its real frequency (e.g. "chore: prefix — 23/87") — observed data beats generic examples. Selecting nothing keeps the current rules; extra patterns arrive via "Other".
+4. Write the chosen rules back into the Sync triage line of this `CLAUDE.md`, and append a `config |` entry to `log.md`, e.g. `config | sync noise rules set: chore:/version-bump/[skip ci] (from 87-commit scan)`.
 
 ## `scripts/sync.ps1` / `sync.sh`
 

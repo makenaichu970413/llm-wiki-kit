@@ -17,6 +17,16 @@ A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintai
 
 That's it — the running vault is self-contained afterward. It never needs to reference this kit repo again; `CLAUDE.md` has everything.
 
+## Day-2 usage (after Init)
+
+The running vault's own `CLAUDE.md` defines all of this (this README is deleted at Init) — but so you know what you're getting, daily operation is a handful of plain phrases said to Claude Code inside the vault:
+
+- **`run sync`** *(code-sync)* — incremental update from new commits on the tracked branch: diff since `last_synced_sha`, skip noise commits, update only the affected pages. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
+- **`set commit noise`** *(code-sync)* — tune which commits Sync skips: Claude scans your recent `git log`, shows the noise patterns it actually observed (with frequencies), you multi-select which to skip.
+- **Ingest** — drop a document into `raw/` and say "process it": summary page + updates to every affected entity page.
+- **Query** — just ask; answers cite wiki pages and `file:line`. Answers worth keeping get filed under `wiki/answers/`.
+- **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling.
+
 ## What's in this repo
 
 ```

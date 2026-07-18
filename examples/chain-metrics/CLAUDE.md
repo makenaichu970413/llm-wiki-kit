@@ -81,6 +81,7 @@ Append-only. Every operation gets an entry with a grep-able prefix:
 ## [2026-07-18] sync | 707ec2a..a1b2c3d (3 files, 4 pages updated)
 ## [2026-07-18] query | "why is final_total_transactions NULL?"
 ## [2026-07-18] lint | 2 contradictions found, 1 orphan
+## [2026-07-18] config | sync noise rules set: [CHECK]/version-bump (from 120-commit scan)
 ```
 
 One line of detail under each: what pages were touched, what changed.
@@ -98,6 +99,9 @@ One line of detail under each: what pages were touched, what changed.
 3. Map changed files → affected pages via `code_refs` frontmatter and `index.md`. Read only the changed files (and diffs), update the affected pages, flag contradictions per the rule above.
 4. If a change introduces a new pipeline/table, create its page. If something was deleted, mark the page `> ⚠️ Removed in <sha>` — don't delete pages, history has value.
 5. Update `index.md`, append to `log.md` (`sync | <old>..<new>`), advance `last_synced_sha`.
+
+### Tuning sync noise ("set commit noise")
+When the human says "set commit noise" (or similar): read the current ignore list from Sync step 2, scan recent `git log` and tally recurring noise patterns, present them as a multi-select with real frequencies (selecting nothing keeps current rules), write the chosen rules back into Sync step 2, and log a `config |` entry.
 
 ### Ingest (non-code sources)
 Human drops a doc into `raw/` and asks to process it. Read it → discuss key takeaways → write `wiki/sources/<name>.md` summary → update every affected entity/concept page → index + log.
