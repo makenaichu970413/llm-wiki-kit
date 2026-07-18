@@ -2,7 +2,7 @@
 
 Versioning: MAJOR = architecture change (directory/state-file mechanism) · MINOR = workflow improvement · PATCH = wording/documentation fix.
 
-## [Unreleased]
+## [0.1.0] - 2026-07-19
 
 ### Changed
 
@@ -25,7 +25,7 @@ Versioning: MAJOR = architecture change (directory/state-file mechanism) · MINO
 
 Extracted from a private single-project vault (a data-engineering wiki; anonymized here as `chain-metrics`) after it completed one full real-usage cycle (5 real Queries, 5 real Ingests, 1 Sync, 1 Lint — see that project's `PLAN.md` §2/§9 for the extraction evidence trail). Extraction was started deliberately before the originally-planned gate (≥5 Sync runs, 2-week `CLAUDE.md` stability window) finished, by explicit decision of the vault's maintainer — noted here rather than glossed over, since it means this kit's `code-sync` module has only been battle-tested against one real Sync so far, not the five originally intended.
 
-Not yet released as `v0.1.0` — that tag is reserved for after the acceptance test (§6 in the source project's `PLAN.md`: initializing a genuinely different kind of vault — non-code, e.g. a book or a research topic — purely from `INIT.md`, with no prior context) passes. Until then, treat every file here as usable-but-unproven outside the single data-engineering instance (`examples/chain-metrics/`) it came from.
+Tagged `v0.1.0` ahead of the acceptance test (§6 in the source project's `PLAN.md`: initializing a genuinely different kind of vault — non-code, e.g. a book or a research topic — purely from `INIT.md`, with no prior context), by explicit decision of the maintainer — noted here rather than glossed over. Until that test passes, treat every file here as usable-but-unproven outside the single data-engineering instance (`examples/chain-metrics/`) it came from.
 
 ### Added
 

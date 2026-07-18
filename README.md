@@ -70,4 +70,4 @@ llm-wiki-kit/
 
 ## Status
 
-v0.1.0 in progress — core + code-sync module built and internally consistent; the acceptance test (initializing a genuinely different kind of vault, non-code, purely from `INIT.md`) hasn't run yet. Until that passes, treat this as usable-but-unproven outside the single data-engineering instance it was extracted from.
+**v0.1.0** — core + code-sync module built and internally consistent, tagged ahead of the acceptance test (initializing a genuinely different kind of vault, non-code, purely from `INIT.md`), which hasn't run yet. Until that passes, treat this as usable-but-unproven outside the single data-engineering instance it was extracted from.
