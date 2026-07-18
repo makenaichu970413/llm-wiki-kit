@@ -2,6 +2,17 @@
 
 A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintained knowledge base for a project, codebase, or research topic. Background/rationale: [IDEA.md](IDEA.md). Extracted from a real, single-project instance (`examples/chain-metrics/`, project name anonymized), not designed in the abstract — see that example for what a filled-in vault actually looks like.
 
+![Illustrative wiki graph view — placeholder labels, not a real vault](kit-assets/graph-view-example.svg)
+
+*What a filled-in vault looks like browsed in [Obsidian](https://obsidian.md)'s graph view (optional — see Prerequisites) — `index` linking out to every page, pages linking to each other. Labels above are generic placeholders, not a real project; see `examples/chain-metrics/CLAUDE.md` for the real (anonymized) schema this comes from.*
+
+## Prerequisites
+
+- **[Claude Code](https://claude.com/claude-code)**, on a plan or API account that can actually run it — this kit is a `CLAUDE.md`-driven script for it, not a standalone program. Init's interactive option cards use Claude Code's question tool specifically; without it (a different coding agent), Init still works but falls back to asking everything in plain chat.
+- **`git`** — every vault gets `git init`'d during Init, code-sync vault or not. Tracking a code repo (the code-sync module) additionally needs that repo to be a real local git checkout, since Bootstrap/Sync read its history directly.
+- **[Obsidian](https://obsidian.md)** *(optional, recommended)* — not required to operate the wiki (Claude Code reads/writes the plain Markdown directly regardless), but the wiki is written in `[[wikilink]]`-style linking specifically so it's browsable as an Obsidian vault: clickable cross-references, graph view, backlinks. Without it you can still read the pages fine in any editor, just without the linking/graph niceties. If you do use it, see the Obsidian graph-view gotcha Claude surfaces at the end of Init (a stray click on a grey node silently creates a 0-byte file).
+- **PowerShell or bash** *(code-sync only, optional)* — only needed to run `scripts/sync.ps1` / `sync.sh` headless (e.g. from a scheduled task); saying "run sync" to Claude Code interactively works without either.
+
 ## Quickstart (~30 minutes)
 
 1. Copy this `llm-wiki-kit/` folder into a new, empty directory — that directory becomes your vault.
@@ -34,6 +45,7 @@ llm-wiki-kit/
 ├── CLAUDE.md            # placeholder pointing Claude at INIT.md — replaced by the assembled vault CLAUDE.md during Init
 ├── IDEA.md              # background/rationale — read for context, not needed at runtime
 ├── INIT.md              # the initialization script — what Claude follows in step 3 above
+├── kit-assets/          # this README's own images (e.g. the graph-view illustration above) — not vault content
 ├── core/                # copied into every vault, regardless of what it tracks
 │   ├── CLAUDE.core.md   # mechanism-layer schema: page format, index/log rules, Ingest/Query/Lint
 │   └── wiki/            # empty index.md/log.md templates
