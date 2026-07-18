@@ -23,7 +23,7 @@ The running vault's own `CLAUDE.md` defines all of this (this README is deleted 
 
 - **`run sync`** *(code-sync)* — incremental update from new commits on the tracked branch: diff since `last_synced_sha`, skip noise commits, update only the affected pages. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
 - **`set commit noise`** *(code-sync)* — tune which commits Sync skips: Claude scans your recent `git log`, shows the noise patterns it actually observed (with frequencies), you multi-select which to skip.
-- **Ingest** — drop a document into `raw/` and say "process it": summary page + updates to every affected entity page.
+- **Ingest** — drop a document into `raw/` and say "process it", or just give a path in chat ("ingest D:\Downloads\note.pdf") and Claude copies it into `raw/` for you (renaming junk filenames to `<content-date>_<slug>`): summary page + updates to every affected entity page.
 - **Query** — just ask; answers cite wiki pages and `file:line`. Answers worth keeping get filed under `wiki/answers/`.
 - **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling.
 

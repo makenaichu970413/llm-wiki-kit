@@ -22,7 +22,7 @@ You are the **maintainer of this wiki**. The human curates sources and asks ques
 ```
 {{VAULT_NAME}}/
 ├── CLAUDE.md          # this file — the schema. You may propose edits; human approves.
-├── raw/               # immutable source docs (JIRA extracts, design notes, articles). READ-ONLY — never modify.
+├── raw/               # immutable source docs (JIRA extracts, design notes, articles). Append-only — adding files is normal (human or you, via Ingest); never modify or delete existing ones.
 │   └── assets/        # downloaded images for raw docs
 └── wiki/              # the wiki. You own this layer entirely.
     ├── index.md       # content catalog — update on EVERY change
@@ -113,7 +113,19 @@ One line of detail under each: what pages were touched, what changed.
 
 ### Ingest (non-code / non-tracked sources)
 
-Human drops a doc into `raw/` and asks to process it. Read it → discuss key takeaways → write `wiki/sources/<name>.md` summary → update every affected entity/concept page → index + log.
+Two entry points:
+
+- **Human drops a doc into `raw/`** and asks to process it.
+- **Human gives a filesystem path in chat** ("ingest D:\Downloads\note.pdf") — verify the file exists, then **copy** it into `raw/` yourself. Copy, never move: the human's original stays untouched, which also means the whole operation is non-destructive and needs no confirmation — just report what was archived where.
+
+Archiving rules for the path case:
+
+- **Rename only when the original filename carries no information** (`New Text Document (3).md`, screenshot dumps). Rename format: `<content-date>_<slug>.<ext>` — the date the content is *about* (a meeting note's meeting date), not today's; fall back to today only if the content itself is undated. A filename that already means something (a ticket key, a report title) is kept as-is.
+- Either way, record provenance in the source page's frontmatter: `raw_file:` (vault-relative path) and `original_path:` (where it was copied from) — renaming must never break the "where did this come from" chain.
+
+**Attachments pasted directly into chat (screenshots, images) cannot be archived** — there is no file on disk to copy, and content seen in context can't be re-encoded into the original file. Fallback, in order: (1) ask the human to save it somewhere and give the path (dragging a file into the terminal usually inserts its path — that counts); (2) if that's too much friction for this item, do a **summary-only ingest**: write the source page as normal but set `raw_file: none (chat-only attachment)` — an honest, flagged exception to the raw/ audit trail, not a norm to drift into.
+
+From there the flow is identical in every case: read it → discuss key takeaways → write `wiki/sources/<name>.md` summary → update every affected entity/concept page (flag conflicts per the `⚠️ Superseded` rule — surface contradictions to the human, don't silently reconcile them) → index + log.
 
 ### Query
 

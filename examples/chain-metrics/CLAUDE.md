@@ -21,7 +21,7 @@ This wiki documents the **chain-metrics** project — a Databricks-based sustain
 chain-metrics-llm-wiki/
 ├── CLAUDE.md          # this file — the schema. You may propose edits; human approves.
 ├── wiki-state.json    # sync state: { last_synced_sha, project_repo, branch }
-├── raw/               # immutable source docs (JIRA extracts, design notes, articles). READ-ONLY — never modify.
+├── raw/               # immutable source docs (JIRA extracts, design notes, articles). Append-only — adding is normal, never modify or delete existing ones.
 │   └── assets/        # downloaded images for raw docs
 ├── scripts/
 │   └── sync.ps1       # diff-driven incremental sync (see Sync workflow)
@@ -104,7 +104,7 @@ One line of detail under each: what pages were touched, what changed.
 When the human says "set commit noise" (or similar): read the current ignore list from Sync step 2, scan recent `git log` and tally recurring noise patterns, present them as a multi-select with real frequencies (selecting nothing keeps current rules), write the chosen rules back into Sync step 2, and log a `config |` entry.
 
 ### Ingest (non-code sources)
-Human drops a doc into `raw/` and asks to process it. Read it → discuss key takeaways → write `wiki/sources/<name>.md` summary → update every affected entity/concept page → index + log.
+Human drops a doc into `raw/` — or gives a filesystem path in chat, in which case **copy** (never move) the file into `raw/` yourself, renaming information-free filenames to `<content-date>_<slug>` and recording `raw_file:` + `original_path:` in the source page's frontmatter. Images pasted directly into chat can't be archived (no file on disk to copy) — ask for a path, or fall back to a summary-only ingest flagged `raw_file: none`. Then: read it → discuss key takeaways → write `wiki/sources/<name>.md` summary → update every affected entity/concept page → index + log.
 
 ### Query
 Read `index.md` → open relevant pages → answer with citations (`[[page]]` + `file:line` for code). If the answer took real synthesis and has reuse value, offer to file it under `wiki/answers/`.
