@@ -89,7 +89,7 @@ One line of detail under each: what pages were touched, what changed.
 
 ### Bootstrap (one-time)
 1. **Structure pass:** scan the project repo's directory tree only (no file contents). Create `overview.md`, domain pages, and a skeleton `index.md` with red links for every pipeline/table page that should exist.
-2. **Module passes:** ingest one module batch at a time (e.g. "EC layer1 crawlers", "EC layer2 + platform analytics", "carbon_footprint nodemaps", "gold/MiCA annualisation", "ddl tables"). For each batch: read the code, write/fill the pages, update index + log. Confirm with the human between batches.
+2. **Module passes:** ingest one module batch at a time (e.g. "EC layer1 crawlers", "EC layer2 + platform analytics", "carbon_footprint nodemaps", "gold/MiCA annualisation", "ddl tables"). For each batch: read the code, write/fill the pages, update index + log, commit. The human is needed at two points only: confirming the batch plan, and spot-checking batch 1's output — after that, run the remaining batches straight through with a one-line progress note each, stopping only on genuine anomalies (a contradiction with an existing page, an unplanned oversized area, context pressure). Either mode can be switched at any batch boundary.
 3. Finish by setting `wiki-state.json → last_synced_sha` to the repo's current `origin/main` SHA.
 
 ### Sync (incremental — triggered by scripts/sync.ps1 or manually)
