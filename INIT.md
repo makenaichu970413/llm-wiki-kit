@@ -76,7 +76,7 @@ Ask these in conversation, not as a wall of questions at once — a natural back
    full operating schema — this file is the short version, for humans who just want to
    know what to say.
 
-   ## Day-2 usage
+   ## Daily Use
 
    - **`run sync`** *(code-sync)* — incremental update from new commits on `{{MAIN_BRANCH}}`. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
    - **`set commit noise`** *(code-sync)* — tune which commits Sync skips.

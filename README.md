@@ -28,7 +28,7 @@ A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintai
 
 That's it — the running vault is self-contained afterward. It never needs to reference this kit repo again; `CLAUDE.md` has everything.
 
-## Day-2 usage (after Init)
+## Daily Use
 
 The running vault's own `CLAUDE.md` defines all of this in full; Init also generates a short vault-specific `README.md` from it (this file itself doesn't survive — `INIT.md` overwrites it with one that describes the running vault instead of the kit), so a human can see what to say without opening `CLAUDE.md`. Daily operation is a handful of plain phrases said to Claude Code inside the vault:
 
