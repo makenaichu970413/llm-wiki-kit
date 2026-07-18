@@ -1,0 +1,8 @@
+# OS/editor junk
+.DS_Store
+Thumbs.db
+
+# This repo is a template kit, not a live vault - if opened in Obsidian to browse,
+# none of its local workspace state is meaningful to keep (unlike core/.gitignore,
+# which only excludes per-machine state for a *real*, instantiated vault).
+.obsidian/

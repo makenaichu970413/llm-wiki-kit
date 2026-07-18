@@ -1,0 +1,5 @@
+{
+  "project_repo": "{{PROJECT_REPO_PATH}}",
+  "branch": "{{MAIN_BRANCH}}",
+  "last_synced_sha": null
+}
