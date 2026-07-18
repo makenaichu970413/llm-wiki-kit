@@ -11,7 +11,7 @@ A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintai
    ```text
    init vault
    ```
-4. Answer the interview questions (~5, conversational, not a form). Claude assembles a single `CLAUDE.md` for your vault, **deletes the kit's own scaffolding** (`core/`, `modules/`, `examples/`, `INIT.md`, etc. — the vault is initialized in-place), and confirms it's ready.
+4. Answer the interview questions (~5 — clickable option cards for the choices, plain chat for the open-ended ones like project description and repo path; falls back to fully conversational if the environment has no question tool). Claude assembles a single `CLAUDE.md` for your vault, **deletes the kit's own scaffolding** (`core/`, `modules/`, `examples/`, `INIT.md`, etc. — the vault is initialized in-place), and confirms it's ready.
 5. Confirm the entry Claude drafts for your user-global `~/.claude/CLAUDE.md` — this is the pointer that makes sessions *in your project repo* consult the wiki instead of re-deriving answers from scratch. Without it the wiki silently goes unused.
 6. Follow the handoff instructions Claude gives you (run Bootstrap if you're tracking a code repo, or ingest your first source if not).
 

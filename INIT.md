@@ -4,11 +4,13 @@ You are an LLM setting up a brand-new LLM Wiki vault from this kit. The human ha
 
 Do not skip the Interview by guessing answers yourself. The whole point of this script is that a human who has never read `PLAN.md` (the kit's own design rationale, not needed at runtime) can get a well-fitted vault out of a short conversation.
 
+**How to ask (applies to Step 0 and Step 1):** if the environment provides an interactive question tool (in Claude Code: `AskUserQuestion`, which renders clickable option cards), use it for the closed-choice questions — yes/no, pick-one, multi-select confirmations — and batch related choices into one card round rather than asking one at a time. Ask open-ended questions (free text: the project description, filesystem paths) in plain chat; a card's "Other" box is a poor place to type a paragraph or paste a path. Mind the tool's limits (max 4 questions per call, max 4 options per question) — if a proposal doesn't fit, split it across two rounds or drop that question back to chat. If no such tool is available, ask everything conversationally in chat — the interview works either way.
+
 ---
 
 ## Step 0 — Module selection
 
-Ask: **"Does this wiki track a git code repository?"**
+Ask: **"Does this wiki track a git code repository?"** *(closed choice — question tool if available: two options, each with a one-line description of what gets installed)*
 
 - **Yes** → install the `code-sync` module (Bootstrap + Sync workflows, `wiki-state.json`, `scripts/`). Continue to Step 1 with the code-sync-tagged questions included.
 - **No** (a reading project, a research topic, personal notes, anything without a git repo as the primary source) → core only. The wiki's only way to receive new source material is the Ingest workflow (human drops docs into `raw/`). Continue to Step 1, skipping code-sync-tagged questions.
@@ -21,17 +23,17 @@ Ask: **"Does this wiki track a git code repository?"**
 
 ## Step 1 — Interview
 
-Ask these in conversation, not as a wall of questions at once — a natural back-and-forth is fine. Record the answers; you'll use them in Step 2.
+Ask these in conversation, not as a wall of questions at once — a natural back-and-forth is fine. Mixed mode per "How to ask" above: #1 and the path half of #4 are open-ended — ask them in chat first; #2, #3, #5 and the branch half of #4 are choices — batch them into one card round once the chat answers are in. Record the answers; you'll use them in Step 2.
 
 1. **"One paragraph: what is this vault about?"** → `{{PROJECT_DESCRIPTION}}` / `{{PROJECT_NAME}}`.
 2. **"What are the 'entities' in this domain?"** — Don't just ask; **propose first**. Scan the source material (directory tree for a code repo, a table of contents / sample chapter for a document collection, whatever's available) and suggest categories, e.g.:
    - Data engineering repo → `pipelines/`, `tables/`, `concepts/`, `domains/`
    - Web app → `services/`, `apis/`, `components/`, `concepts/`
    - Book / research topic → `characters/`, `themes/`, `chapters/`, `concepts/`
-   Get human confirmation or correction. → `{{ENTITY_CATEGORIES}}`. For each category, also agree on a **page template** (the "must state" checklist — e.g. a pipeline page states purpose/inputs/outputs/schedule/known issues) → `{{PAGE_TEMPLATES}}`.
-3. **"What language should the wiki be written in?"** — Default proposal: follow the source material's own language (code comments, docs). Note conversation language and storage language are independent — confirm the human understands they can ask in their own language regardless of what the wiki is written in. → `{{LANGUAGE_CONVENTION}}`.
-4. *(code-sync only)* **"What's the project repo's path, and its main branch name?"** → `{{PROJECT_REPO_PATH}}` (absolute path — don't assume the vault is a sibling directory of the repo; ask, don't infer), `{{MAIN_BRANCH}}`.
-5. *(code-sync only)* **"Any known commit-noise patterns I should skip during Sync?"** — e.g. a `[CHECK]`/`chore:` prefix convention, automated version-bump commits. If the human doesn't know yet, say that's fine — this gets refined after the first few real Syncs. → `{{SYNC_TRIAGE_RULES}}` (may start empty).
+   Get human confirmation or correction. *(Question tool: present the proposed categories as multi-select options — the human ticks what to keep and adds extras via "Other". More than 4 proposals → split across two rounds, or fall back to chat for this question.)* → `{{ENTITY_CATEGORIES}}`. For each category, also agree on a **page template** (the "must state" checklist — e.g. a pipeline page states purpose/inputs/outputs/schedule/known issues) → `{{PAGE_TEMPLATES}}`.
+3. **"What language should the wiki be written in?"** — Default proposal: follow the source material's own language (code comments, docs). Note conversation language and storage language are independent — confirm the human understands they can ask in their own language regardless of what the wiki is written in. *(Question tool: make "follow the source material's language" the recommended option.)* → `{{LANGUAGE_CONVENTION}}`.
+4. *(code-sync only)* **"What's the project repo's absolute path?"** — ask in chat, and include an example so the human knows the expected shape (Windows: `D:\Programming\shop-api`; macOS/Linux: `/Users/anna/dev/shop-api`). Don't assume the vault is a sibling directory of the repo — ask, don't infer. → `{{PROJECT_REPO_PATH}}`. Then get `{{MAIN_BRANCH}}` **without making the human type it**: run `git -C <path> branch --list` (or `branch -r` if local branches look incomplete) and present the real branches as options, recommending the repo's default branch — a picked branch can't be a typo.
+5. *(code-sync only)* **"Any known commit-noise patterns I should skip during Sync?"** — always give concrete examples so the human knows what counts as noise: a `[CHECK]`/`chore:`/`[skip ci]` prefix convention, automated version-bump or dependency-update commits, formatting-only commits. *(Question tool: make "don't know yet — refine after the first few real Syncs" the recommended option, plus an "I have some" option whose patterns arrive via "Other".)* If the human doesn't know yet, say that's fine. → `{{SYNC_TRIAGE_RULES}}` (may start empty).
 
 **Done when:** every `{{PLACEHOLDER}}` referenced in Step 2 below has an answer (or an explicit "leave empty, fill in later" for #5).
 
