@@ -19,12 +19,12 @@ That's it — the running vault is self-contained afterward. It never needs to r
 
 ## Day-2 usage (after Init)
 
-The running vault's own `CLAUDE.md` defines all of this (this README is deleted at Init) — but so you know what you're getting, daily operation is a handful of plain phrases said to Claude Code inside the vault:
+The running vault's own `CLAUDE.md` defines all of this in full; Init also generates a short vault-specific `README.md` from it (this file itself doesn't survive — `INIT.md` overwrites it with one that describes the running vault instead of the kit), so a human can see what to say without opening `CLAUDE.md`. Daily operation is a handful of plain phrases said to Claude Code inside the vault:
 
 - **`run sync`** *(code-sync)* — incremental update from new commits on the tracked branch: diff since `last_synced_sha`, skip noise commits, update only the affected pages. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
 - **`set commit noise`** *(code-sync)* — tune which commits Sync skips: Claude scans your recent `git log`, shows the noise patterns it actually observed (with frequencies), you multi-select which to skip.
 - **Ingest** — drop a document into `raw/` and say "process it", or just give a path in chat ("ingest D:\Downloads\note.pdf") and Claude copies it into `raw/` for you (renaming junk filenames to `<content-date>_<slug>`): summary page + updates to every affected entity page.
-- **Query** — just ask; answers cite wiki pages and `file:line`. Answers worth keeping get filed under `wiki/answers/`.
+- **Query** — just ask; answers cite wiki pages and `file:line`. If an answer looks worth keeping, Claude proposes filing it under `wiki/answers/` — nothing gets written there without you confirming. Say **`archive this`** *(trigger phrase)* any time to file (or re-file) an answer yourself, even one Claude didn't think to offer — it also folds the finding back into the entity pages it touches, not just the answers file.
 - **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling.
 
 ## What's in this repo

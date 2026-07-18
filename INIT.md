@@ -65,14 +65,36 @@ Ask these in conversation, not as a wall of questions at once — a natural back
    ```
 2. Assemble `CLAUDE.md`: take `core/CLAUDE.core.md`, replace every `{{PLACEHOLDER}}` with the Step 1 answers. *(code-sync only)* append `modules/code-sync/CLAUDE.code-sync.md`'s content (with its own placeholders filled) into the appropriate places — the "Code-sync layout addendum" merges into the Layout section, "Bootstrap"/"Sync" workflows join the "Core workflows" section, and the log-prefix note extends `log.md`'s prefix list. The result is **one self-contained `CLAUDE.md`** — write it over the kit's placeholder `CLAUDE.md` at the vault root; nothing in the running vault should reference back to `llm-wiki-kit/` at runtime.
 3. Remove every HTML comment (`<!-- ... -->`) from the assembled file — those are Init-time guidance, not part of the operating schema.
-4. **Delete the kit's own scaffolding from the vault directory** — the vault is initialized in-place inside the copied kit folder, and everything that only served Init must go so the vault ends up self-contained:
-   - `core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `README.md`, `CHANGELOG.md`
-   - If the kit was **cloned** rather than copied (there's a `.git/` carrying the kit's own history), delete that `.git/` too, so the next step's `git init` starts the vault's history fresh.
-   - Keep `.obsidian/` if present (it's the human's local Obsidian config, harmless) and the `.gitignore` you already instantiated from `core/.gitignore`.
-   - Yes, this deletes `INIT.md` itself mid-run — that's fine: you've already read it, and Steps 3–5 are in your context. Don't defer the cleanup to "after everything else"; it must happen before `git init` so no kit file ever enters the vault's history.
-5. `git init` the new vault; write the `log.md` init entry (already templated in `core/wiki/log.md`, just fill placeholders); make the initial commit.
+4. **Overwrite `README.md` with a short, vault-specific one** — a human landing on this repo (GitHub, a teammate's first look, browsing without Claude Code open) shouldn't have to open `CLAUDE.md` just to learn what the vault is and how to use it day-to-day. Replace the kit's own README content entirely — nothing about the kit's Quickstart, its own repo layout, or its `v0.1.0` status belongs here, since none of it describes the running vault:
+   ```markdown
+   # {{PROJECT_NAME}} — LLM Wiki
 
-**Done when:** the vault directory exists, `CLAUDE.md` is one self-contained file, no kit scaffolding files remain, and there's an initial git commit that contains only vault files.
+   {{PROJECT_DESCRIPTION}}
+
+   A living knowledge base maintained by Claude Code: the human curates sources and asks
+   questions; Claude does the reading, writing, and cross-referencing. `CLAUDE.md` is the
+   full operating schema — this file is the short version, for humans who just want to
+   know what to say.
+
+   ## Day-2 usage
+
+   - **`run sync`** *(code-sync)* — incremental update from new commits on `{{MAIN_BRANCH}}`. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
+   - **`set commit noise`** *(code-sync)* — tune which commits Sync skips.
+   - **Ingest** — drop a document into `raw/` and say "process it", or give a filesystem path in chat.
+   - **Query** — just ask; answers cite wiki pages and `file:line`. Say "archive this" to file an answer yourself, even one Claude didn't offer to.
+   - **`run lint`** — periodic consistency check across the wiki.
+
+   See `wiki/index.md` for the content catalog, `wiki/log.md` for the change history.
+   ```
+   *(pure core: drop the `run sync` / `set commit noise` bullets — those workflows don't exist without the code-sync module.)* Fill every `{{PLACEHOLDER}}` from the Step 1 answers, same as `CLAUDE.md`.
+5. **Delete the rest of the kit's own scaffolding from the vault directory** — the vault is initialized in-place inside the copied kit folder, and everything else that only served Init must go so the vault ends up self-contained:
+   - `core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`
+   - If the kit was **cloned** rather than copied (there's a `.git/` carrying the kit's own history), delete that `.git/` too, so the next step's `git init` starts the vault's history fresh.
+   - Keep `.obsidian/` if present (it's the human's local Obsidian config, harmless), the `.gitignore` you already instantiated from `core/.gitignore`, and the `README.md` you just overwrote in the previous step.
+   - Yes, this deletes `INIT.md` itself mid-run — that's fine: you've already read it, and Steps 3–5 are in your context. Don't defer the cleanup to "after everything else"; it must happen before `git init` so no kit file ever enters the vault's history.
+6. `git init` the new vault; write the `log.md` init entry (already templated in `core/wiki/log.md`, just fill placeholders); make the initial commit.
+
+**Done when:** the vault directory exists, `CLAUDE.md` is one self-contained file, `README.md` describes the vault (not the kit), no other kit scaffolding files remain, and there's an initial git commit that contains only vault files.
 
 ---
 
@@ -81,7 +103,10 @@ Ask these in conversation, not as a wall of questions at once — a natural back
 1. Grep the assembled `CLAUDE.md` and every templated file for a literal `{{` — **zero** should remain. If any are left, you missed a Step 1 answer; go back and ask.
 2. *(code-sync only)* Confirm `wiki-state.json → project_repo` points at a real, existing git repository (`git -C <path> rev-parse HEAD` should succeed) and `branch` is a real branch. Run `scripts/sync.ps1` (or `.sh`) once as a dry run — it should print "last_synced_sha is null - run the Bootstrap workflow first" and exit cleanly, not error out.
 3. Read the assembled `CLAUDE.md` once, start to finish, as if you were a fresh session with no memory of this Init conversation — does it read as a complete, coherent schema on its own? If something only makes sense with Init-conversation context, fix it now.
-4. List the vault root (including hidden files) — none of the kit's scaffolding may remain (`core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `README.md`, `CHANGELOG.md`), and `git log` should show only the vault's own initial commit, no kit history.
+4. Read the new `README.md` — it should describe *this vault* (project name, description, Day-2 phrases matching the modules actually installed) with zero mentions of the kit's own Quickstart, repo layout, or version status. If any kit-repo language survived from the original, fix it now.
+5. List the vault root (including hidden files) — none of the kit's scaffolding may remain (`core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`), `README.md` should be the vault-specific one from Step 2, and `git log` should show only the vault's own initial commit, no kit history.
+
+**Done when:** all five checks pass.
 
 **Done when:** all four checks pass.
 

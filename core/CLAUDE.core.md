@@ -96,6 +96,7 @@ Append-only. Every operation gets an entry with a grep-able prefix:
 ```
 ## [YYYY-MM-DD] ingest | <subject>
 ## [YYYY-MM-DD] query | "<question>"
+## [YYYY-MM-DD] answer | "<question>"
 ## [YYYY-MM-DD] lint | <N> contradictions found, <M> orphans
 ```
 
@@ -129,7 +130,23 @@ From there the flow is identical in every case: read it → discuss key takeaway
 
 ### Query
 
-Read `index.md` → open relevant pages → answer with citations (`[[page]]` + a locator into the source — `file:line` for code, a section/page reference for a document). If the answer took real synthesis and has reuse value, offer to file it under `wiki/answers/`.
+Read `index.md` → open relevant pages → answer with citations (`[[page]]` + a locator into the source — `file:line` for code, a section/page reference for a document).
+
+**When to offer filing to `wiki/answers/`, and when not to:**
+
+- **Offer** when the answer took real cross-referencing (multiple pages/files, not a single lookup), resolved something previously unknown or ambiguous (a root cause, a design rationale, a contradiction between sources), or is likely to recur for a future session or person.
+- **Don't bother** when the answer already sits verbatim on one existing page (just cite it), the finding is speculative/unverified against the real source, the question was about the wiki's own mechanics rather than its subject, or it's a genuine one-off with no expected reuse.
+- Prefer folding a finding straight into the entity page(s) it's actually about over a standalone answer page — reserve `wiki/answers/` for investigations that span multiple entities or don't belong to any single existing page. Do both when a standalone finding also changes what an entity page currently claims.
+
+This is a default judgment call, not a gate — the human can always override it (below).
+
+**On-demand archive — trigger phrase: "archive this" / "归档"**
+
+The heuristic above can miss in either direction — an offer declined in the moment for something that matters later, or a question judged too narrow that turns out to matter after all. When the human says **"archive this" / "归档"** (or similar phrasing — a convention, not a parser) for the most recent answer, or a specific earlier one if named:
+
+1. Write `wiki/answers/<slug>.md` for that answer (ask which one if ambiguous) — same page format as any other page: frontmatter, `[[wikilinks]]`, source citations.
+2. Fold the finding back into every entity page it actually touches too, not just the answers/ page — flag contradictions with `⚠️ Superseded` as usual. An answer that changes what a page currently claims should update that page, not just live isolated in `answers/`.
+3. Update `index.md`, append a `## [YYYY-MM-DD] answer | "<question>"` entry to `log.md`.
 
 ### Lint (periodic)
 
