@@ -13,6 +13,11 @@
     --border: #e2e5e9;
     --accent: #3b6fd6;
     --mono-bg: #f0f1f4;
+    --warn: #9a6b00;
+    --warn-bg: rgba(224, 160, 48, 0.14);
+    --warn-stripe: #e0a030;
+    --danger: #c0392b;
+    --danger-bg: rgba(192, 57, 43, 0.08);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -23,6 +28,11 @@
       --border: #34383f;
       --accent: #7aa2f7;
       --mono-bg: #14161a;
+      --warn: #f2cc8f;
+      --warn-bg: rgba(242, 204, 143, 0.12);
+      --warn-stripe: #d9a94f;
+      --danger: #ff8a80;
+      --danger-bg: rgba(255, 138, 128, 0.09);
     }
   }
   * { box-sizing: border-box; }
@@ -89,10 +99,36 @@
     border-radius: 4px;
     font-size: 0.85em;
   }
-  .overdue { color: #c0392b; font-weight: 600; }
-  @media (prefers-color-scheme: dark) {
-    .overdue { color: #ff8a80; }
+  .overdue { color: var(--danger); font-weight: 600; }
+  .card.state-warn { border-left: 3px solid var(--warn-stripe); }
+  .card.state-danger { border-left: 3px solid var(--danger); }
+  .th-count { color: var(--muted); }
+  ul.redlinks li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 4px;
   }
+  .redlink {
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--warn);
+    background: var(--warn-bg);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .mentions {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.88rem;
+    flex: none;
+  }
+  ul.redlinks li.overdue { background: var(--danger-bg); border-radius: 6px; font-weight: normal; }
+  ul.redlinks li.overdue .redlink { color: var(--danger); background: transparent; padding-left: 2px; }
+  ul.redlinks li.overdue .mentions { color: var(--danger); }
+  .overdue-flag { font-size: 0.78rem; color: var(--danger); margin-left: auto; white-space: nowrap; }
   button.copy-btn {
     display: inline-block;
     margin: 3px 6px 3px 0;

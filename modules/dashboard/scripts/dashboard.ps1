@@ -194,7 +194,7 @@ $fetchWarning
 
     $syncCardHtml = @"
 <div class="card">
-  <h2>Sync status</h2>
+  <h2>🔄 Sync status</h2>
   $syncRows
 </div>
 "@
@@ -204,7 +204,7 @@ $fetchWarning
 $opRows = ($opCounts.Keys | ForEach-Object { "<div class=`"stat-row`"><span>$_</span><span class=`"n`">$($opCounts[$_])</span></div>" }) -join "`n"
 $logStatsCard = @"
 <div class="card">
-  <h2>Log stats</h2>
+  <h2>📊 Log stats</h2>
   <div class="stat-row"><span>total entries</span><span class="n">$($entries.Count)</span></div>
   $opRows
   <div class="stat-row"><span>archived</span><span class="n">$archivedCount</span></div>
@@ -223,7 +223,7 @@ if ($recentEntries.Count -eq 0) {
 }
 $recentActivityCard = @"
 <div class="card wide">
-  <h2>Recent activity</h2>
+  <h2>🕒 Recent activity</h2>
   <ul class="plain">
   $recentItems
   </ul>
@@ -235,9 +235,11 @@ if ($redLinks.Count -eq 0) {
     $redLinksHtml = '<li class="empty">none</li>'
 } else {
     $redLinksHtml = ($redLinks | ForEach-Object {
-        $cls = if ($_.Count -ge 3) { ' class="overdue"' } else { '' }
-        $flag = if ($_.Count -ge 3) { ' (overdue)' } else { '' }
-        "<li$cls>[[$(HtmlEscape $_.Target)]] &mdash; $($_.Count) mention(s)$flag</li>"
+        if ($_.Count -ge 3) {
+            "<li class=`"overdue`"><span class=`"redlink`">&#9888; [[$(HtmlEscape $_.Target)]]</span><span class=`"overdue-flag`">overdue</span><span class=`"mentions`">$($_.Count)</span></li>"
+        } else {
+            "<li><span class=`"redlink`">[[$(HtmlEscape $_.Target)]]</span><span class=`"mentions`">$($_.Count)</span></li>"
+        }
     }) -join "`n"
 }
 if ($orphans.Count -eq 0) {
@@ -245,13 +247,19 @@ if ($orphans.Count -eq 0) {
 } else {
     $orphansHtml = ($orphans | ForEach-Object { "<li>$(HtmlEscape $_)</li>" }) -join "`n"
 }
+$healthStateClass = ""
+if ($overdueRedLinkCount -gt 0) {
+    $healthStateClass = " state-danger"
+} elseif ($redLinks.Count -gt 0 -or $orphans.Count -gt 0 -or $supersededCount -gt 0) {
+    $healthStateClass = " state-warn"
+}
 $healthCard = @"
-<div class="card wide">
-  <h2>Health check</h2>
+<div class="card wide$healthStateClass">
+  <h2>🩺 Health check</h2>
   <table>
-    <tr><th>Red links (by mentions)</th><th>Orphan pages</th></tr>
+    <tr><th>Red links <span class="th-count">($($redLinks.Count))</span></th><th>Orphan pages <span class="th-count">($($orphans.Count))</span></th></tr>
     <tr>
-      <td><ul class="plain">$redLinksHtml</ul></td>
+      <td><ul class="plain redlinks">$redLinksHtml</ul></td>
       <td><ul class="plain">$orphansHtml</ul></td>
     </tr>
   </table>
@@ -273,7 +281,7 @@ $graphDataJs = "const graphData = {`"nodes`":[$($graphNodeParts -join ',')],`"ed
 
 $graphCard = @"
 <div class="card wide graph-card">
-  <h2>Knowledge graph</h2>
+  <h2>🕸️ Knowledge graph</h2>
   <div class="graph-controls muted">drag nodes &middot; scroll to zoom &middot; drag background to pan &middot; double-click to reset</div>
   <div id="graph-legend" class="graph-legend"></div>
   <canvas id="graph-canvas"></canvas>
@@ -284,7 +292,7 @@ $graphCard = @"
 $modulesHtml = ($installedModules | ForEach-Object { "<li>$(HtmlEscape $_)</li>" }) -join "`n"
 $modulesCard = @"
 <div class="card">
-  <h2>Installed modules</h2>
+  <h2>🧩 Installed modules</h2>
   <ul class="plain">$modulesHtml</ul>
 </div>
 "@
@@ -304,7 +312,7 @@ $buttonsHtml = ($buttons | ForEach-Object {
 }) -join "`n"
 $buttonsCard = @"
 <div class="card">
-  <h2>Daily Use</h2>
+  <h2>📋 Daily Use</h2>
   $buttonsHtml
   <div class="muted" style="margin-top:8px;">Click to copy a trigger phrase, then paste it into a Claude Code chat inside the vault. Query has no fixed phrase &mdash; just ask.</div>
 </div>

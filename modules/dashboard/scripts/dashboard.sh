@@ -274,7 +274,7 @@ $fetch_warning"
 
     cat > "$sync_card_file" <<EOF
 <div class="card">
-  <h2>Sync status</h2>
+  <h2>🔄 Sync status</h2>
   $sync_rows
 </div>
 EOF
@@ -289,7 +289,7 @@ done
 
 cat > "$log_stats_card_file" <<EOF
 <div class="card">
-  <h2>Log stats</h2>
+  <h2>📊 Log stats</h2>
   <div class="stat-row"><span>total entries</span><span class="n">$total_entries</span></div>
   $op_rows
   <div class="stat-row"><span>archived</span><span class="n">$archived_count</span></div>
@@ -312,7 +312,7 @@ else
 fi
 cat > "$recent_card_file" <<EOF
 <div class="card wide">
-  <h2>Recent activity</h2>
+  <h2>🕒 Recent activity</h2>
   <ul class="plain">
   $recent_items
   </ul>
@@ -327,9 +327,11 @@ if (( ${#red_links[@]} == 0 )); then
 else
     for rl in "${red_links[@]}"; do
         IFS=$'\t' read -r rl_count rl_target <<< "$rl"
-        cls=""; flag=""
-        if (( rl_count >= 3 )); then cls=' class="overdue"'; flag=" (overdue)"; fi
-        red_links_html="$red_links_html<li$cls>[[$(html_escape "$rl_target")]] &mdash; $rl_count mention(s)$flag</li>"$'\n'
+        if (( rl_count >= 3 )); then
+            red_links_html="$red_links_html<li class=\"overdue\"><span class=\"redlink\">&#9888; [[$(html_escape "$rl_target")]]</span><span class=\"overdue-flag\">overdue</span><span class=\"mentions\">$rl_count</span></li>"$'\n'
+        else
+            red_links_html="$red_links_html<li><span class=\"redlink\">[[$(html_escape "$rl_target")]]</span><span class=\"mentions\">$rl_count</span></li>"$'\n'
+        fi
     done
 fi
 orphans_html=""
@@ -340,13 +342,19 @@ else
         orphans_html="$orphans_html<li>$(html_escape "$o")</li>"$'\n'
     done
 fi
+health_state_class=""
+if (( overdue_red_links > 0 )); then
+    health_state_class=" state-danger"
+elif (( ${#red_links[@]} > 0 || ${#orphans[@]} > 0 || superseded_count > 0 )); then
+    health_state_class=" state-warn"
+fi
 cat > "$health_card_file" <<EOF
-<div class="card wide">
-  <h2>Health check</h2>
+<div class="card wide$health_state_class">
+  <h2>🩺 Health check</h2>
   <table>
-    <tr><th>Red links (by mentions)</th><th>Orphan pages</th></tr>
+    <tr><th>Red links <span class="th-count">(${#red_links[@]})</span></th><th>Orphan pages <span class="th-count">(${#orphans[@]})</span></th></tr>
     <tr>
-      <td><ul class="plain">$red_links_html</ul></td>
+      <td><ul class="plain redlinks">$red_links_html</ul></td>
       <td><ul class="plain">$orphans_html</ul></td>
     </tr>
   </table>
@@ -385,7 +393,7 @@ printf 'const graphData = {"nodes":[%s],"edges":[%s]};\n' "$graph_nodes_json" "$
 
 cat > "$graph_card_file" <<'EOF'
 <div class="card wide graph-card">
-  <h2>Knowledge graph</h2>
+  <h2>🕸️ Knowledge graph</h2>
   <div class="graph-controls muted">drag nodes &middot; scroll to zoom &middot; drag background to pan &middot; double-click to reset</div>
   <div id="graph-legend" class="graph-legend"></div>
   <canvas id="graph-canvas"></canvas>
@@ -398,7 +406,7 @@ modules_html="<li>dashboard</li>"
 if (( is_code_sync )); then modules_html="<li>code-sync</li>$modules_html"; fi
 cat > "$modules_card_file" <<EOF
 <div class="card">
-  <h2>Installed modules</h2>
+  <h2>🧩 Installed modules</h2>
   <ul class="plain">$modules_html</ul>
 </div>
 EOF
@@ -415,7 +423,7 @@ if (( is_code_sync )); then
 fi
 cat > "$buttons_card_file" <<EOF
 <div class="card">
-  <h2>Daily Use</h2>
+  <h2>📋 Daily Use</h2>
   $buttons_html
   <div class="muted" style="margin-top:8px;">Click to copy a trigger phrase, then paste it into a Claude Code chat inside the vault. Query has no fixed phrase &mdash; just ask.</div>
 </div>
