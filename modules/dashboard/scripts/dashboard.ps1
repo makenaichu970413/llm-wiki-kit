@@ -188,10 +188,16 @@ if ($isCodeSync) {
                 $syncedUpTo = (git -C $repo show -s --format=%cd --date=format:'%Y-%m-%d %H:%M' $lastSynced 2>$null).Trim()
                 if ($syncedUpTo) { $syncedUpToRow = "<div class=`"stat-row`"><span>synced up to</span><span class=`"n`">$syncedUpTo</span></div>" }
             } catch { }
+            $headDateRow = ""
+            try {
+                $headDate = (git -C $repo show -s --format=%cd --date=format:'%Y-%m-%d %H:%M' $head 2>$null).Trim()
+                if ($headDate) { $headDateRow = "<div class=`"stat-row`"><span>latest commit</span><span class=`"n`">$headDate</span></div>" }
+            } catch { }
             $syncRows = @"
 <div class="stat-row"><span>last_synced_sha</span><span class="n"><code>$shortLast</code></span></div>
 $syncedUpToRow
 <div class="stat-row"><span>origin/$(HtmlEscape $branch)</span><span class="n"><code>$shortHead</code></span></div>
+$headDateRow
 <div class="stat-row"><span>commits behind</span><span class="n">$behind</span></div>
 $fetchWarning
 "@

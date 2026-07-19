@@ -270,9 +270,15 @@ if (( is_code_sync )); then
             if [[ -n "$synced_up_to" ]]; then
                 synced_up_to_row="<div class=\"stat-row\"><span>synced up to</span><span class=\"n\">$synced_up_to</span></div>"
             fi
+            head_date_row=""
+            head_date="$(git -C "$repo" show -s --format=%cd --date=format:'%Y-%m-%d %H:%M' "$head" 2>/dev/null || true)"
+            if [[ -n "$head_date" ]]; then
+                head_date_row="<div class=\"stat-row\"><span>latest commit</span><span class=\"n\">$head_date</span></div>"
+            fi
             sync_rows="<div class=\"stat-row\"><span>last_synced_sha</span><span class=\"n\"><code>$short_last</code></span></div>
 $synced_up_to_row
 <div class=\"stat-row\"><span>origin/$(html_escape "$branch")</span><span class=\"n\"><code>$short_head</code></span></div>
+$head_date_row
 <div class=\"stat-row\"><span>commits behind</span><span class=\"n\">$behind</span></div>
 $fetch_warning"
         fi
