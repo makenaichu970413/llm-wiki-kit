@@ -272,7 +272,7 @@ $healthCard = @"
 <div class="card wide$healthStateClass">
   <h2>🩺 Health check</h2>
   <table>
-    <tr><th>Red links <span class="th-count">($($redLinks.Count))</span></th><th>Orphan pages <span class="th-count">($($orphans.Count))</span></th></tr>
+    <tr><th>Missing pages <span class="th-count">(red links &middot; $($redLinks.Count))</span></th><th>Orphan pages <span class="th-count">($($orphans.Count))</span></th></tr>
     <tr>
       <td><ul class="plain redlinks">$redLinksHtml</ul></td>
       <td><ul class="plain">$orphansHtml</ul></td>

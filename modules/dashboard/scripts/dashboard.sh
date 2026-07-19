@@ -367,7 +367,7 @@ cat > "$health_card_file" <<EOF
 <div class="card wide$health_state_class">
   <h2>🩺 Health check</h2>
   <table>
-    <tr><th>Red links <span class="th-count">(${#red_links[@]})</span></th><th>Orphan pages <span class="th-count">(${#orphans[@]})</span></th></tr>
+    <tr><th>Missing pages <span class="th-count">(red links &middot; ${#red_links[@]})</span></th><th>Orphan pages <span class="th-count">(${#orphans[@]})</span></th></tr>
     <tr>
       <td><ul class="plain redlinks">$red_links_html</ul></td>
       <td><ul class="plain">$orphans_html</ul></td>
