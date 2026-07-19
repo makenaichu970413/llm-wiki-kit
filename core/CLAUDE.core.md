@@ -105,6 +105,8 @@ Append-only. Every operation gets an entry with a grep-able prefix:
 
 One line of detail under each: what pages were touched, what changed.
 
+**Reading log.md doesn't mean reading all of it.** Before writing a new entry or checking convention, `grep "^## \["` for headers instead of reading the file start to finish — and skip past the body of any header tagged `⚠️ Archived <date>` (see Lint below) unless the current task specifically needs that entry's detail (e.g. a page cites it as the origin of a claim). Nothing is ever deleted or rewritten; the tag just means routine reads can pass over it. This is what keeps append-only-forever growth tolerable without ever discarding history.
+
 ## Core workflows
 
 <!-- Bootstrap and Sync are code-sync-module workflows — see CLAUDE.code-sync.md,
@@ -150,13 +152,17 @@ The heuristic above can miss in either direction — an offer declined in the mo
 
 ### Lint (periodic)
 
-Check for: contradictions between pages, claims older than their source citations (stale `synced_at_sha` or an un-revisited `source_refs`), orphan pages with no inbound links, red links worth filling, concepts mentioned ≥3 times without their own page. Report findings; fix what's approved. Log it.
+Check for: contradictions between pages, claims older than their source citations (stale `synced_at_sha` or an un-revisited `source_refs`), orphan pages with no inbound links, red links worth filling, concepts mentioned ≥3 times without their own page, and `log.md` entries worth archiving (see below). Report findings; fix what's approved. Log it.
 
 <!-- A practical way to run the orphan/red-link checks mechanically rather than by eye:
      extract every `[[wikilink]]` target across wiki/ (one line per match), extract every
      actual page filename, then diff the two sets — targets with no matching file are red
      links; files with no matching target (excluding index.md/log.md, which are hubs, not
      entities) are orphans. Far more reliable than eyeballing 40+ pages. -->
+
+**log.md archiving.** Entries are never deleted or rewritten — but an old entry can be tagged `⚠️ Archived <date>` (appended to its header line: `## [YYYY-MM-DD] <op> | <subject> — ⚠️ Archived <YYYY-MM-DD>`) once its content is fully reflected elsewhere and unlikely to be needed verbatim soon. This is non-destructive and reversible: the full entry stays exactly as written, only routine reads skip its body (per the rule in `log.md` above). Prefer tagging entries whose content is domain findings already backfilled into wiki pages; leave unmarked anything with detail that lives nowhere else — process/methodology notes (a batch plan, a remark about the wiki-maintenance workflow itself), or an entry worth keeping as a reference for how detailed a future entry should be. This is a judgment call like any other Lint fix — propose it, don't do it silently. Log the marking itself as a normal lint entry.
+
+If `log.md`'s raw size ever becomes a cost in itself — not just reading it, but its physical growth (e.g. even grepping headers gets noticeably slow) — that's a signal to design an actual compaction/summarization step for long-archived entries. Not designed here; no evidence yet that archiving alone won't be enough.
 
 ## Domain glossary
 

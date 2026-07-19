@@ -2,6 +2,12 @@
 
 Versioning: MAJOR = architecture change (directory/state-file mechanism) · MINOR = workflow improvement · PATCH = wording/documentation fix.
 
+## [Unreleased]
+
+### Changed
+
+- Lint (`core/CLAUDE.core.md`) gained a `log.md` archiving check: entries whose content is fully reflected elsewhere can be tagged `⚠️ Archived <date>` on their header line — non-destructive (nothing is deleted or rewritten) and reversible, unlike an earlier compaction design considered and rejected during development (collapsing old entries into rewritten one-line summaries) once a worked example showed it could silently discard process/methodology detail no wiki page would otherwise capture. `log.md`'s own section gained a matching reading rule: grep headers instead of reading start to finish, skip the body of `Archived`-tagged entries by default. Surfaced by real usage of a vault built from this kit, where `log.md` had grown past 140 lines with no defined way to keep routine reads cheap. Actual size-reduction (compaction/summarization of long-archived entries) is deliberately left undesigned — revisit only if archiving alone proves insufficient.
+
 ## [0.1.0] - 2026-07-19
 
 ### Changed
