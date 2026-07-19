@@ -275,9 +275,10 @@ if (( is_code_sync )); then
             if [[ -n "$head_date" ]]; then
                 head_date_row="<div class=\"stat-row\"><span>latest commit</span><span class=\"n\">$head_date</span></div>"
             fi
-            sync_rows="<div class=\"stat-row\"><span>last_synced_sha</span><span class=\"n\"><code>$short_last</code></span></div>
+            sync_rows="<div class=\"stat-row\"><span>branch</span><span class=\"n\"><code>origin/$(html_escape "$branch")</code></span></div>
+<div class=\"stat-row\"><span>last_synced_sha</span><span class=\"n\"><code>$short_last</code></span></div>
 $synced_up_to_row
-<div class=\"stat-row\"><span>origin/$(html_escape "$branch")</span><span class=\"n\"><code>$short_head</code></span></div>
+<div class=\"stat-row\"><span>remote head</span><span class=\"n\"><code>$short_head</code></span></div>
 $head_date_row
 <div class=\"stat-row\"><span>commits behind</span><span class=\"n\">$behind</span></div>
 $fetch_warning"

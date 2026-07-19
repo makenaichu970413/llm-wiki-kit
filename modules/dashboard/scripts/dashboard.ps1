@@ -194,9 +194,10 @@ if ($isCodeSync) {
                 if ($headDate) { $headDateRow = "<div class=`"stat-row`"><span>latest commit</span><span class=`"n`">$headDate</span></div>" }
             } catch { }
             $syncRows = @"
+<div class="stat-row"><span>branch</span><span class="n"><code>origin/$(HtmlEscape $branch)</code></span></div>
 <div class="stat-row"><span>last_synced_sha</span><span class="n"><code>$shortLast</code></span></div>
 $syncedUpToRow
-<div class="stat-row"><span>origin/$(HtmlEscape $branch)</span><span class="n"><code>$shortHead</code></span></div>
+<div class="stat-row"><span>remote head</span><span class="n"><code>$shortHead</code></span></div>
 $headDateRow
 <div class="stat-row"><span>commits behind</span><span class="n">$behind</span></div>
 $fetchWarning
