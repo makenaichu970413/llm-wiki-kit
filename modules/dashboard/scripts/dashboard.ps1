@@ -181,8 +181,16 @@ if ($isCodeSync) {
             try {
                 $behind = (git -C $repo rev-list --count "$lastSynced..$head" 2>$null).Trim()
             } catch { $behind = "?" }
+            # wiki-state.json stores no sync-run timestamp, so show the commit date of
+            # last_synced_sha instead: "the wiki covers the code as of this moment".
+            $syncedUpToRow = ""
+            try {
+                $syncedUpTo = (git -C $repo show -s --format=%cd --date=format:'%Y-%m-%d %H:%M' $lastSynced 2>$null).Trim()
+                if ($syncedUpTo) { $syncedUpToRow = "<div class=`"stat-row`"><span>synced up to</span><span class=`"n`">$syncedUpTo</span></div>" }
+            } catch { }
             $syncRows = @"
 <div class="stat-row"><span>last_synced_sha</span><span class="n"><code>$shortLast</code></span></div>
+$syncedUpToRow
 <div class="stat-row"><span>origin/$(HtmlEscape $branch)</span><span class="n"><code>$shortHead</code></span></div>
 <div class="stat-row"><span>commits behind</span><span class="n">$behind</span></div>
 $fetchWarning

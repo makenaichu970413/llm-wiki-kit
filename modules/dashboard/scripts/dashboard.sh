@@ -263,7 +263,15 @@ if (( is_code_sync )); then
             short_last="${last_synced:0:8}"
             short_head="${head:0:8}"
             behind="$(git -C "$repo" rev-list --count "$last_synced..$head" 2>/dev/null || echo "?")"
+            # wiki-state.json stores no sync-run timestamp, so show the commit date of
+            # last_synced_sha instead: "the wiki covers the code as of this moment".
+            synced_up_to_row=""
+            synced_up_to="$(git -C "$repo" show -s --format=%cd --date=format:'%Y-%m-%d %H:%M' "$last_synced" 2>/dev/null || true)"
+            if [[ -n "$synced_up_to" ]]; then
+                synced_up_to_row="<div class=\"stat-row\"><span>synced up to</span><span class=\"n\">$synced_up_to</span></div>"
+            fi
             sync_rows="<div class=\"stat-row\"><span>last_synced_sha</span><span class=\"n\"><code>$short_last</code></span></div>
+$synced_up_to_row
 <div class=\"stat-row\"><span>origin/$(html_escape "$branch")</span><span class=\"n\"><code>$short_head</code></span></div>
 <div class=\"stat-row\"><span>commits behind</span><span class=\"n\">$behind</span></div>
 $fetch_warning"
