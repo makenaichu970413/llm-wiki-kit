@@ -165,6 +165,7 @@
   var css = getComputedStyle(document.documentElement);
   var borderColor = css.getPropertyValue("--border").trim() || "#ccc";
   var textColor = css.getPropertyValue("--text").trim() || "#000";
+  var accentColor = css.getPropertyValue("--accent").trim() || "#3b6fd6";
   var PALETTE = ["#3b6fd6", "#e07a5f", "#81b29a", "#f2cc8f", "#9b5de5", "#00b4d8", "#ef476f", "#06d6a0", "#ffa62b", "#8338ec"];
 
   function hashStr(s) {
@@ -206,6 +207,15 @@
 
   var view = { w: 600, h: 520, offsetX: 0, offsetY: 0, scale: 1 };
 
+  // K is the Fruchterman-Reingold "ideal edge length": derived from canvas area and node
+  // count so both repulsion and spring rest-length scale with how crowded the graph actually
+  // is, instead of using fixed pixel constants tuned for one graph size/density.
+  var K = 90;
+  function updateIdealDistance() {
+    var area = Math.max(1, view.w * view.h);
+    K = Math.max(50, Math.min(180, Math.sqrt(area / n) * 1.4));
+  }
+
   function resize() {
     var rect = canvas.getBoundingClientRect();
     var dpr = window.devicePixelRatio || 1;
@@ -214,14 +224,17 @@
     canvas.width = Math.max(1, Math.round(view.w * dpr));
     canvas.height = Math.max(1, Math.round(view.h * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    updateIdealDistance();
   }
 
   function screenToWorld(sx, sy) {
     return { x: (sx - view.w / 2 - view.offsetX) / view.scale, y: (sy - view.h / 2 - view.offsetY) / view.scale };
   }
 
-  var dragNode = null, panning = false, panStart = null;
-  var REPULSION = 2600, SPRING = 0.02, SPRING_LEN = 90, CENTER_PULL = 0.01, DAMPING = 0.85;
+  var dragNode = null, panning = false, panStart = null, hoverNode = null;
+  var SPRING = 0.06, CENTER_PULL = 0.01, DAMPING = 0.85;
+  var MIN_DIST = 24, MAX_SPEED = 24;
+  var alpha = 1, ALPHA_DECAY = 0.02, ALPHA_MIN = 0.02;
 
   function step() {
     for (var i = 0; i < nodes.length; i++) {
@@ -232,9 +245,9 @@
         if (i === j) continue;
         var b = nodes[j];
         var dx = a.x - b.x, dy = a.y - b.y;
-        var distSq = dx * dx + dy * dy || 0.01;
-        var dist = Math.sqrt(distSq);
-        var force = REPULSION / distSq;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MIN_DIST) dist = MIN_DIST;
+        var force = ((K * K) / dist) * alpha;
         fx += (dx / dist) * force;
         fy += (dy / dist) * force;
       }
@@ -246,16 +259,22 @@
     links.forEach(function (l) {
       var dx = l.b.x - l.a.x, dy = l.b.y - l.a.y;
       var dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      var diff = (dist - SPRING_LEN) * SPRING;
+      var diff = (dist - K) * SPRING * alpha;
       var fx = (dx / dist) * diff, fy = (dy / dist) * diff;
       if (l.a !== dragNode) { l.a.vx += fx; l.a.vy += fy; }
       if (l.b !== dragNode) { l.b.vx -= fx; l.b.vy -= fy; }
     });
     nodes.forEach(function (node) {
       if (node === dragNode) return;
+      var speed = Math.sqrt(node.vx * node.vx + node.vy * node.vy);
+      if (speed > MAX_SPEED) {
+        node.vx = (node.vx / speed) * MAX_SPEED;
+        node.vy = (node.vy / speed) * MAX_SPEED;
+      }
       node.x += node.vx;
       node.y += node.vy;
     });
+    alpha = Math.max(ALPHA_MIN, alpha - alpha * ALPHA_DECAY);
   }
 
   function draw() {
@@ -264,29 +283,49 @@
     ctx.translate(view.w / 2 + view.offsetX, view.h / 2 + view.offsetY);
     ctx.scale(view.scale, view.scale);
 
-    ctx.strokeStyle = borderColor;
-    ctx.lineWidth = 1 / view.scale;
+    var neighborSet = null;
+    if (hoverNode) {
+      neighborSet = {};
+      links.forEach(function (l) {
+        if (l.a === hoverNode) neighborSet[l.b.id] = true;
+        if (l.b === hoverNode) neighborSet[l.a.id] = true;
+      });
+    }
+    function isRelated(node) { return !hoverNode || node === hoverNode || (neighborSet && neighborSet[node.id]); }
+
     links.forEach(function (l) {
+      var related = !hoverNode || l.a === hoverNode || l.b === hoverNode;
+      ctx.strokeStyle = related && hoverNode ? accentColor : borderColor;
+      ctx.globalAlpha = related ? 1 : 0.12;
+      ctx.lineWidth = (related && hoverNode ? 2 : 1) / view.scale;
       ctx.beginPath();
       ctx.moveTo(l.a.x, l.a.y);
       ctx.lineTo(l.b.x, l.b.y);
       ctx.stroke();
     });
+    ctx.globalAlpha = 1;
 
     nodes.forEach(function (node) {
+      ctx.globalAlpha = isRelated(node) ? 1 : 0.25;
       ctx.beginPath();
       ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
       ctx.fillStyle = node.color;
       ctx.fill();
+      if (node === hoverNode) {
+        ctx.lineWidth = 2 / view.scale;
+        ctx.strokeStyle = textColor;
+        ctx.stroke();
+      }
     });
+    ctx.globalAlpha = 1;
 
-    if (view.scale > 0.6) {
+    ctx.font = (11 / view.scale) + "px sans-serif";
+    nodes.forEach(function (node) {
+      ctx.globalAlpha = isRelated(node) ? 1 : 0.25;
       ctx.fillStyle = textColor;
-      ctx.font = (11 / view.scale) + "px sans-serif";
-      nodes.forEach(function (node) {
-        ctx.fillText(node.label, node.x + node.r + 3, node.y + 3);
-      });
-    }
+      ctx.fillText(node.label, node.x + node.r + 3, node.y + 3);
+    });
+    ctx.globalAlpha = 1;
     ctx.restore();
   }
 
@@ -318,12 +357,25 @@
       dragNode = hit;
       dragNode.vx = 0;
       dragNode.vy = 0;
+      alpha = 1;
+      hoverNode = hit;
       canvas.style.cursor = "grabbing";
     } else {
       panning = true;
       panStart = { x: pos.x - view.offsetX, y: pos.y - view.offsetY };
       canvas.style.cursor = "grabbing";
     }
+  });
+
+  canvas.addEventListener("mousemove", function (e) {
+    if (dragNode || panning) return;
+    var pos = eventPos(e);
+    hoverNode = nodeAt(pos.x, pos.y);
+    canvas.style.cursor = hoverNode ? "pointer" : "grab";
+  });
+
+  canvas.addEventListener("mouseleave", function () {
+    if (!dragNode && !panning) hoverNode = null;
   });
 
   window.addEventListener("mousemove", function (e) {
@@ -333,6 +385,7 @@
       var w = screenToWorld(pos.x, pos.y);
       dragNode.x = w.x;
       dragNode.y = w.y;
+      hoverNode = dragNode;
     } else if (panning) {
       view.offsetX = pos.x - panStart.x;
       view.offsetY = pos.y - panStart.y;
@@ -356,13 +409,33 @@
   }, { passive: false });
 
   canvas.addEventListener("dblclick", function () {
-    view.scale = 1;
-    view.offsetX = 0;
-    view.offsetY = 0;
+    fitView();
   });
+
+  function fitView() {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(function (node) {
+      minX = Math.min(minX, node.x - node.r);
+      maxX = Math.max(maxX, node.x + node.r);
+      minY = Math.min(minY, node.y - node.r);
+      maxY = Math.max(maxY, node.y + node.r);
+    });
+    var spanX = Math.max(1, maxX - minX);
+    var spanY = Math.max(1, maxY - minY);
+    view.scale = Math.max(0.15, Math.min(2, Math.min((view.w * 0.9) / spanX, (view.h * 0.9) / spanY)));
+    view.offsetX = -((minX + maxX) / 2) * view.scale;
+    view.offsetY = -((minY + maxY) / 2) * view.scale;
+  }
 
   window.addEventListener("resize", resize);
   resize();
+  // Run the simulation forward before the first paint so the graph opens already
+  // mostly settled, then frame it — otherwise the initial seed positions (a bare
+  // circle) would flash briefly before spreading out, and the default zoom
+  // wouldn't match the graph's actual settled size.
+  var warmupSteps = Math.min(150, Math.max(60, n * 2));
+  for (var w = 0; w < warmupSteps; w++) step();
+  fitView();
   loop();
 })();
 </script>
