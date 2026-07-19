@@ -11,7 +11,7 @@ A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintai
 - **[Claude Code](https://claude.com/claude-code)**, on a plan or API account that can actually run it — this kit is a `CLAUDE.md`-driven script for it, not a standalone program. Init's interactive option cards use Claude Code's question tool specifically; without it (a different coding agent), Init still works but falls back to asking everything in plain chat.
 - **`git`** — every vault gets `git init`'d during Init, code-sync vault or not. Tracking a code repo (the code-sync module) additionally needs that repo to be a real local git checkout, since Bootstrap/Sync read its history directly.
 - **[Obsidian](https://obsidian.md)** *(optional, recommended)* — not required to operate the wiki (Claude Code reads/writes the plain Markdown directly regardless), but the wiki is written in `[[wikilink]]`-style linking specifically so it's browsable as an Obsidian vault: clickable cross-references, graph view, backlinks. Without it you can still read the pages fine in any editor, just without the linking/graph niceties. If you do use it, see the Obsidian graph-view gotcha Claude surfaces at the end of Init (a stray click on a grey node silently creates a 0-byte file).
-- **PowerShell or bash** *(code-sync only, optional)* — only needed to run `scripts/sync.ps1` / `sync.sh` headless (e.g. from a scheduled task); saying "run sync" to Claude Code interactively works without either.
+- **PowerShell or bash** *(code-sync and/or dashboard, optional)* — only needed to run `scripts/sync.ps1`/`sync.sh` or `scripts/dashboard.ps1`/`dashboard.sh` headless (e.g. from a scheduled task); saying "run sync" / "run dashboard" to Claude Code interactively works without either. `dashboard.sh` only calls `jq` when code-sync is also installed (same dependency that module already needs) — no new prerequisite from dashboard alone.
 
 ## Quickstart (~30 minutes)
 
@@ -37,6 +37,7 @@ The running vault's own `CLAUDE.md` defines all of this in full; Init also gener
 - **Ingest** — drop a document into `raw/` and say "process it", or just give a path in chat ("ingest D:\Downloads\note.pdf") and Claude copies it into `raw/` for you (renaming junk filenames to `<content-date>_<slug>`): summary page + updates to every affected entity page.
 - **Query** — just ask; answers cite wiki pages and `file:line`. If an answer looks worth keeping, Claude proposes filing it under `wiki/answers/` — nothing gets written there without you confirming. Say **`archive this`** *(trigger phrase)* any time to file (or re-file) an answer yourself, even one Claude didn't think to offer — it also folds the finding back into the entity pages it touches, not just the answers file.
 - **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling.
+- **`run dashboard`** *(dashboard module)* — regenerates `wiki/dashboard.html`: log stats, health checks (red links, orphans, open contradictions), and one-click-copy Daily Use phrases. A real script, not an LLM computation — also runnable headless via `scripts/dashboard.ps1` / `dashboard.sh`, and auto-refreshed at the end of `run sync` if code-sync is also installed.
 
 ## What's in this repo
 
@@ -50,12 +51,18 @@ llm-wiki-kit/
 │   ├── CLAUDE.core.md   # mechanism-layer schema: page format, index/log rules, Ingest/Query/Lint
 │   └── wiki/            # empty index.md/log.md templates
 ├── modules/
-│   └── code-sync/       # optional: install when the vault tracks a git repo
-│       ├── CLAUDE.code-sync.md   # Bootstrap + Sync workflows
-│       ├── wiki-state.json       # { project_repo, branch, last_synced_sha } template
+│   ├── code-sync/       # optional: install when the vault tracks a git repo
+│   │   ├── CLAUDE.code-sync.md   # Bootstrap + Sync workflows
+│   │   ├── wiki-state.json       # { project_repo, branch, last_synced_sha } template
+│   │   └── scripts/
+│   │       ├── sync.ps1          # Windows
+│   │       └── sync.sh           # macOS/Linux
+│   └── dashboard/       # optional: generated wiki/dashboard.html snapshot, works with or without code-sync
+│       ├── CLAUDE.dashboard.md   # "run dashboard" workflow
+│       ├── assets/dashboard.template.html
 │       └── scripts/
-│           ├── sync.ps1          # Windows
-│           └── sync.sh           # macOS/Linux
+│           ├── dashboard.ps1     # Windows
+│           └── dashboard.sh      # macOS/Linux
 ├── examples/
 │   └── chain-metrics/CLAUDE.md   # a real, working assembled CLAUDE.md — core + code-sync filled in
 └── CHANGELOG.md
@@ -64,7 +71,7 @@ llm-wiki-kit/
 ## Design principles (see IDEA.md for the full reasoning)
 
 - **Core is 100% standard.** Page frontmatter, `index.md`/`log.md` rules, anti-drift conventions (`⚠️ Superseded`/`⚠️ Removed`), and the Ingest/Query/Lint workflows don't change based on what the vault is about.
-- **Modules are opt-in, scenario-specific.** `code-sync` is the first one — install it only if the vault tracks a git repo. A reading-notes vault or a research-topic vault stays core-only.
+- **Modules are opt-in, scenario-specific, and independent of each other.** `code-sync` installs only if the vault tracks a git repo; `dashboard` installs only if the human wants a generated stats/health snapshot — either, both, or neither. A reading-notes vault or a research-topic vault can stay core-only.
 - **Ontology is never templated — it's proposed live.** Entity categories, page templates, language convention, and domain glossary are specific to each vault's subject matter. `INIT.md` has the LLM scan the actual source material and propose categories; the human confirms or corrects. Nothing here pre-guesses what your project's "entities" are.
 - **One-way updates.** Improvements discovered in a running vault flow back into this kit manually — the kit never auto-updates a live vault's `CLAUDE.md`. Each vault's schema is its own living document.
 

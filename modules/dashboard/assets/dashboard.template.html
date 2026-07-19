@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>%%PROJECT_NAME%% — Dashboard</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f6f8;
+    --card-bg: #ffffff;
+    --text: #1c1e21;
+    --muted: #6b7280;
+    --border: #e2e5e9;
+    --accent: #3b6fd6;
+    --mono-bg: #f0f1f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --card-bg: #202329;
+      --text: #e7e9ec;
+      --muted: #9aa0a8;
+      --border: #34383f;
+      --accent: #7aa2f7;
+      --mono-bg: #14161a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1100px;
+    margin-inline: auto;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 1.4rem; margin: 0; }
+  .generated-at { color: var(--muted); font-size: 0.85rem; }
+  .health-banner {
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0 0 12px 0;
+  }
+  .card.wide { grid-column: 1 / -1; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  td, th { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .stat-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 0.92rem; }
+  .stat-row .n { font-weight: 600; }
+  ul.plain { list-style: none; margin: 0; padding: 0; }
+  ul.plain li { padding: 3px 0; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
+  ul.plain li:last-child { border-bottom: none; }
+  .muted { color: var(--muted); }
+  code {
+    background: var(--mono-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+  .overdue { color: #c0392b; font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    .overdue { color: #ff8a80; }
+  }
+  button.copy-btn {
+    display: inline-block;
+    margin: 3px 6px 3px 0;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--mono-bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button.copy-btn:hover { border-color: var(--accent); }
+  button.copy-btn.copied { border-color: var(--accent); color: var(--accent); }
+  .empty { color: var(--muted); font-style: italic; }
+  .graph-card canvas {
+    display: block;
+    width: 100%;
+    height: 520px;
+    border-radius: 8px;
+    background: var(--mono-bg);
+    cursor: grab;
+    touch-action: none;
+  }
+  .graph-controls { font-size: 0.8rem; margin-bottom: 8px; }
+  .graph-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; font-size: 0.8rem; }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>%%PROJECT_NAME%% — Dashboard</h1>
+  <span class="generated-at">generated %%GENERATED_AT%%</span>
+</header>
+
+<div class="health-banner">%%HEALTH_BANNER%%</div>
+
+<div class="grid">
+%%SYNC_CARD%%
+%%LOG_STATS_CARD%%
+%%RECENT_ACTIVITY_CARD%%
+%%HEALTH_CARD%%
+%%GRAPH_CARD%%
+%%MODULES_CARD%%
+%%BUTTONS_CARD%%
+</div>
+
+<script>
+%%GRAPH_DATA%%
+</script>
+<script>
+(function () {
+  var canvas = document.getElementById("graph-canvas");
+  if (!canvas || typeof graphData === "undefined") return;
+  var nodes = graphData.nodes || [];
+  var edges = graphData.edges || [];
+
+  if (nodes.length === 0) {
+    canvas.style.display = "none";
+    var controls = document.querySelector(".graph-controls");
+    if (controls) controls.style.display = "none";
+    var msg = document.createElement("div");
+    msg.className = "empty";
+    msg.textContent = "no pages yet";
+    canvas.parentElement.appendChild(msg);
+    return;
+  }
+
+  var ctx = canvas.getContext("2d");
+  var css = getComputedStyle(document.documentElement);
+  var borderColor = css.getPropertyValue("--border").trim() || "#ccc";
+  var textColor = css.getPropertyValue("--text").trim() || "#000";
+  var PALETTE = ["#3b6fd6", "#e07a5f", "#81b29a", "#f2cc8f", "#9b5de5", "#00b4d8", "#ef476f", "#06d6a0", "#ffa62b", "#8338ec"];
+
+  function hashStr(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) + h) + s.charCodeAt(i); h = h & 0xffffffff; }
+    return Math.abs(h);
+  }
+  function colorForGroup(g) { return PALETTE[hashStr(g) % PALETTE.length]; }
+
+  var byId = {};
+  var n = nodes.length;
+  nodes.forEach(function (node, i) {
+    node.r = Math.min(18, 5 + Math.sqrt(node.degree || 0) * 3);
+    node.color = colorForGroup(node.group || "root");
+    var angle = (i / n) * Math.PI * 2;
+    var radius = 40 + Math.sqrt(n) * 18;
+    node.x = Math.cos(angle) * radius;
+    node.y = Math.sin(angle) * radius;
+    node.vx = 0;
+    node.vy = 0;
+    byId[node.id] = node;
+  });
+  var links = edges.map(function (e) { return { a: byId[e.source], b: byId[e.target] }; })
+                   .filter(function (l) { return l.a && l.b; });
+
+  var legendEl = document.getElementById("graph-legend");
+  if (legendEl) {
+    var seen = {};
+    nodes.forEach(function (node) {
+      var g = node.group || "root";
+      if (seen[g]) return;
+      seen[g] = true;
+      var item = document.createElement("span");
+      item.className = "legend-item";
+      item.innerHTML = '<span class="legend-dot" style="background:' + colorForGroup(g) + '"></span>' + g;
+      legendEl.appendChild(item);
+    });
+  }
+
+  var view = { w: 600, h: 520, offsetX: 0, offsetY: 0, scale: 1 };
+
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    view.w = rect.width || view.w;
+    view.h = rect.height || view.h;
+    canvas.width = Math.max(1, Math.round(view.w * dpr));
+    canvas.height = Math.max(1, Math.round(view.h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function screenToWorld(sx, sy) {
+    return { x: (sx - view.w / 2 - view.offsetX) / view.scale, y: (sy - view.h / 2 - view.offsetY) / view.scale };
+  }
+
+  var dragNode = null, panning = false, panStart = null;
+  var REPULSION = 2600, SPRING = 0.02, SPRING_LEN = 90, CENTER_PULL = 0.01, DAMPING = 0.85;
+
+  function step() {
+    for (var i = 0; i < nodes.length; i++) {
+      var a = nodes[i];
+      if (a === dragNode) continue;
+      var fx = 0, fy = 0;
+      for (var j = 0; j < nodes.length; j++) {
+        if (i === j) continue;
+        var b = nodes[j];
+        var dx = a.x - b.x, dy = a.y - b.y;
+        var distSq = dx * dx + dy * dy || 0.01;
+        var dist = Math.sqrt(distSq);
+        var force = REPULSION / distSq;
+        fx += (dx / dist) * force;
+        fy += (dy / dist) * force;
+      }
+      fx += (0 - a.x) * CENTER_PULL;
+      fy += (0 - a.y) * CENTER_PULL;
+      a.vx = (a.vx + fx) * DAMPING;
+      a.vy = (a.vy + fy) * DAMPING;
+    }
+    links.forEach(function (l) {
+      var dx = l.b.x - l.a.x, dy = l.b.y - l.a.y;
+      var dist = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      var diff = (dist - SPRING_LEN) * SPRING;
+      var fx = (dx / dist) * diff, fy = (dy / dist) * diff;
+      if (l.a !== dragNode) { l.a.vx += fx; l.a.vy += fy; }
+      if (l.b !== dragNode) { l.b.vx -= fx; l.b.vy -= fy; }
+    });
+    nodes.forEach(function (node) {
+      if (node === dragNode) return;
+      node.x += node.vx;
+      node.y += node.vy;
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, view.w, view.h);
+    ctx.save();
+    ctx.translate(view.w / 2 + view.offsetX, view.h / 2 + view.offsetY);
+    ctx.scale(view.scale, view.scale);
+
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1 / view.scale;
+    links.forEach(function (l) {
+      ctx.beginPath();
+      ctx.moveTo(l.a.x, l.a.y);
+      ctx.lineTo(l.b.x, l.b.y);
+      ctx.stroke();
+    });
+
+    nodes.forEach(function (node) {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+      ctx.fillStyle = node.color;
+      ctx.fill();
+    });
+
+    if (view.scale > 0.6) {
+      ctx.fillStyle = textColor;
+      ctx.font = (11 / view.scale) + "px sans-serif";
+      nodes.forEach(function (node) {
+        ctx.fillText(node.label, node.x + node.r + 3, node.y + 3);
+      });
+    }
+    ctx.restore();
+  }
+
+  function loop() {
+    step();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function nodeAt(sx, sy) {
+    var w = screenToWorld(sx, sy);
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      var node = nodes[i];
+      var dx = w.x - node.x, dy = w.y - node.y;
+      if (dx * dx + dy * dy <= (node.r + 3) * (node.r + 3)) return node;
+    }
+    return null;
+  }
+
+  function eventPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  canvas.addEventListener("mousedown", function (e) {
+    var pos = eventPos(e);
+    var hit = nodeAt(pos.x, pos.y);
+    if (hit) {
+      dragNode = hit;
+      dragNode.vx = 0;
+      dragNode.vy = 0;
+      canvas.style.cursor = "grabbing";
+    } else {
+      panning = true;
+      panStart = { x: pos.x - view.offsetX, y: pos.y - view.offsetY };
+      canvas.style.cursor = "grabbing";
+    }
+  });
+
+  window.addEventListener("mousemove", function (e) {
+    if (!dragNode && !panning) return;
+    var pos = eventPos(e);
+    if (dragNode) {
+      var w = screenToWorld(pos.x, pos.y);
+      dragNode.x = w.x;
+      dragNode.y = w.y;
+    } else if (panning) {
+      view.offsetX = pos.x - panStart.x;
+      view.offsetY = pos.y - panStart.y;
+    }
+  });
+
+  window.addEventListener("mouseup", function () {
+    dragNode = null;
+    panning = false;
+    canvas.style.cursor = "grab";
+  });
+
+  canvas.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    var pos = eventPos(e);
+    var before = screenToWorld(pos.x, pos.y);
+    var factor = e.deltaY < 0 ? 1.1 : 0.9;
+    view.scale = Math.min(4, Math.max(0.2, view.scale * factor));
+    view.offsetX = pos.x - view.w / 2 - before.x * view.scale;
+    view.offsetY = pos.y - view.h / 2 - before.y * view.scale;
+  }, { passive: false });
+
+  canvas.addEventListener("dblclick", function () {
+    view.scale = 1;
+    view.offsetX = 0;
+    view.offsetY = 0;
+  });
+
+  window.addEventListener("resize", resize);
+  resize();
+  loop();
+})();
+</script>
+<script>
+function copyText(text, btn) {
+  function done() {
+    var original = btn.textContent;
+    btn.textContent = "Copied!";
+    btn.classList.add("copied");
+    setTimeout(function () {
+      btn.textContent = original;
+      btn.classList.remove("copied");
+    }, 1200);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  done();
+}
+document.addEventListener("click", function (e) {
+  var btn = e.target.closest(".copy-btn");
+  if (!btn) return;
+  copyText(btn.getAttribute("data-copy"), btn);
+});
+</script>
+</body>
+</html>

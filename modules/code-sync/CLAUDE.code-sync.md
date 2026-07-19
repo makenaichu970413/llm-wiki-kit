@@ -61,3 +61,5 @@ The noise rules start rough (often empty — "refine after the first few real Sy
 Both scripts: read `wiki-state.json`, fetch the tracked repo, diff `last_synced_sha..origin/{{MAIN_BRANCH}}`, and hand the range + changed-file list to a headless `claude -p` run instructed to execute the Sync workflow above, then verify `last_synced_sha` actually advanced.
 
 **`git fetch` can time out or hang** (credential prompt, network issue) — don't let that abort the whole run. If fetch fails, fall back to whatever `origin/{{MAIN_BRANCH}}` already resolves to locally and print a visible warning that the diff may be stale, rather than crashing.
+
+*(dashboard module, if also installed)* after a successful sync, `sync.ps1`/`sync.sh` calls `scripts/dashboard.ps1`/`dashboard.sh` automatically to refresh `wiki/dashboard.html` — best-effort, a dashboard failure warns but never fails the sync itself. See `CLAUDE.dashboard.md`.

@@ -10,12 +10,12 @@ Do not skip the Interview by guessing answers yourself. The whole point of this 
 
 ## Step 0 — Module selection
 
-Ask: **"Does this wiki track a git code repository?"** *(closed choice — question tool if available: two options, each with a one-line description of what gets installed)*
+Ask as a **multi-select checklist** *(question tool if available: one question, two options, each with a one-line description of what gets installed — either can be picked independently)*:
 
-- **Yes** → install the `code-sync` module (Bootstrap + Sync workflows, `wiki-state.json`, `scripts/`). Continue to Step 1 with the code-sync-tagged questions included.
-- **No** (a reading project, a research topic, personal notes, anything without a git repo as the primary source) → core only. The wiki's only way to receive new source material is the Ingest workflow (human drops docs into `raw/`). Continue to Step 1, skipping code-sync-tagged questions.
+- **code-sync** — "Does this wiki track a git code repository?" If picked: installs the Bootstrap + Sync workflows, `wiki-state.json`, `scripts/sync.ps1`/`sync.sh`. Continue to Step 1 with the code-sync-tagged questions included. If not picked (a reading project, a research topic, personal notes, anything without a git repo as the primary source): core only for this axis — the wiki's only way to receive new source material is the Ingest workflow (human drops docs into `raw/`). Skip code-sync-tagged questions in Step 1.
+- **dashboard** — "Want a generated `wiki/dashboard.html` snapshot (log stats, health checks, one-click-copy Daily Use phrases)?" If picked: installs `scripts/dashboard.ps1`/`dashboard.sh`/`dashboard.template.html` and the "run dashboard" trigger phrase. Works standalone or alongside code-sync (it shows a sync-status section only when code-sync is also installed).
 
-*(If this kit ever grows a second module, this becomes a checklist instead of a single yes/no — not yet.)*
+Both are independent — a pure-core vault can install `dashboard` alone, or `code-sync` alone, or both, or neither.
 
 **Done when:** you know which modules to assemble.
 
@@ -63,7 +63,14 @@ Ask these in conversation, not as a wall of questions at once — a natural back
        ├── sync.ps1       # copy from modules/code-sync/scripts/sync.ps1 verbatim
        └── sync.sh        # copy from modules/code-sync/scripts/sync.sh verbatim
    ```
-2. Assemble `CLAUDE.md`: take `core/CLAUDE.core.md`, replace every `{{PLACEHOLDER}}` with the Step 1 answers. *(code-sync only)* append `modules/code-sync/CLAUDE.code-sync.md`'s content (with its own placeholders filled) into the appropriate places — the "Code-sync layout addendum" merges into the Layout section, "Bootstrap"/"Sync" workflows join the "Core workflows" section, and the log-prefix note extends `log.md`'s prefix list. The result is **one self-contained `CLAUDE.md`** — write it over the kit's placeholder `CLAUDE.md` at the vault root; nothing in the running vault should reference back to `llm-wiki-kit/` at runtime.
+   *(dashboard only, additionally — `scripts/` may already exist from code-sync above; these three files join it)*
+   ```
+   └── scripts/
+       ├── dashboard.ps1            # copy from modules/dashboard/scripts/dashboard.ps1 verbatim
+       ├── dashboard.sh             # copy from modules/dashboard/scripts/dashboard.sh verbatim
+       └── dashboard.template.html  # copy from modules/dashboard/assets/dashboard.template.html verbatim
+   ```
+2. Assemble `CLAUDE.md`: take `core/CLAUDE.core.md`, replace every `{{PLACEHOLDER}}` with the Step 1 answers. *(code-sync only)* append `modules/code-sync/CLAUDE.code-sync.md`'s content (with its own placeholders filled) into the appropriate places — the "Code-sync layout addendum" merges into the Layout section, "Bootstrap"/"Sync" workflows join the "Core workflows" section, and the log-prefix note extends `log.md`'s prefix list. *(dashboard only)* append `modules/dashboard/CLAUDE.dashboard.md`'s content — its "Dashboard layout addendum" merges into the Layout section (alongside the code-sync addendum if both are installed) and the "Dashboard" trigger-phrase section joins "Core workflows". The result is **one self-contained `CLAUDE.md`** — write it over the kit's placeholder `CLAUDE.md` at the vault root; nothing in the running vault should reference back to `llm-wiki-kit/` at runtime.
 3. Remove every HTML comment (`<!-- ... -->`) from the assembled file — those are Init-time guidance, not part of the operating schema.
 4. **Overwrite `README.md` with a short, vault-specific one** — a human landing on this repo (GitHub, a teammate's first look, browsing without Claude Code open) shouldn't have to open `CLAUDE.md` just to learn what the vault is and how to use it day-to-day. Replace the kit's own README content entirely — nothing about the kit's Quickstart, its own repo layout, or its `v0.1.0` status belongs here, since none of it describes the running vault:
    ```markdown
@@ -83,10 +90,11 @@ Ask these in conversation, not as a wall of questions at once — a natural back
    - **Ingest** — drop a document into `raw/` and say "process it", or give a filesystem path in chat.
    - **Query** — just ask; answers cite wiki pages and `file:line`. Say "archive this" to file an answer yourself, even one Claude didn't offer to.
    - **`run lint`** — periodic consistency check across the wiki.
+   - **`run dashboard`** *(dashboard)* — regenerate `wiki/dashboard.html` (log stats, health checks, one-click-copy Daily Use phrases). Also runnable headless via `scripts/dashboard.ps1` / `dashboard.sh`; *(code-sync + dashboard both installed)* `run sync` regenerates it automatically at the end.
 
    See `wiki/index.md` for the content catalog, `wiki/log.md` for the change history.
    ```
-   *(pure core: drop the `run sync` / `set commit noise` bullets — those workflows don't exist without the code-sync module.)* Fill every `{{PLACEHOLDER}}` from the Step 1 answers, same as `CLAUDE.md`.
+   *(drop whichever module-tagged bullets don't apply to the modules actually installed for this vault — a pure-core vault with neither module keeps only Ingest/Query/`run lint`.)* Fill every `{{PLACEHOLDER}}` from the Step 1 answers, same as `CLAUDE.md`.
 5. **Delete the rest of the kit's own scaffolding from the vault directory** — the vault is initialized in-place inside the copied kit folder, and everything else that only served Init must go so the vault ends up self-contained:
    - `core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`
    - If the kit was **cloned** rather than copied (there's a `.git/` carrying the kit's own history), delete that `.git/` too, so the next step's `git init` starts the vault's history fresh.
@@ -102,6 +110,7 @@ Ask these in conversation, not as a wall of questions at once — a natural back
 
 1. Grep the assembled `CLAUDE.md` and every templated file for a literal `{{` — **zero** should remain. If any are left, you missed a Step 1 answer; go back and ask.
 2. *(code-sync only)* Confirm `wiki-state.json → project_repo` points at a real, existing git repository (`git -C <path> rev-parse HEAD` should succeed) and `branch` is a real branch. Run `scripts/sync.ps1` (or `.sh`) once as a dry run — it should print "last_synced_sha is null - run the Bootstrap workflow first" and exit cleanly, not error out.
+2b. *(dashboard only)* Run `scripts/dashboard.ps1` (or `.sh`) once as a dry run — confirm `wiki/dashboard.html` is created without error (a freshly-Init'd vault has an empty `log.md` beyond the `init` entry and no entity pages yet, so expect an all-zeros/empty-state page, not a crash).
 3. Read the assembled `CLAUDE.md` once, start to finish, as if you were a fresh session with no memory of this Init conversation — does it read as a complete, coherent schema on its own? If something only makes sense with Init-conversation context, fix it now.
 4. Read the new `README.md` — it should describe *this vault* (project name, description, Day-2 phrases matching the modules actually installed) with zero mentions of the kit's own Quickstart, repo layout, or version status. If any kit-repo language survived from the original, fix it now.
 5. List the vault root (including hidden files) — none of the kit's scaffolding may remain (`core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`), `README.md` should be the vault-specific one from Step 2, and `git log` should show only the vault's own initial commit, no kit history.
@@ -151,6 +160,7 @@ Tell the human what happens next, matched to the module chosen in Step 0:
 
 - **code-sync installed:** "Vault is ready. Next: run the Bootstrap workflow — I'll scan `{{PROJECT_REPO_PATH}}`'s directory tree first (structure pass, no file contents), propose a batch breakdown for reading it in chunks, then read + write pages batch by batch. Say 'run bootstrap' when ready."
 - **pure core:** "Vault is ready. Next: ingest your first source — drop a document into `raw/` and tell me to process it."
+- **dashboard installed** (either case, appended): "Once there's some real content — a Bootstrap, an Ingest, a Sync — say 'run dashboard' any time for a snapshot of log stats and wiki health, or just let it refresh itself after the next `run sync` if code-sync is also installed."
 
 Also surface these as standing user-facing notes (gotchas that bite people, not obvious from reading the schema):
 

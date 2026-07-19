@@ -3,3 +3,6 @@
 .obsidian/workspace-mobile.json
 .obsidian/cache
 .trash/
+
+# Dashboard module: generated snapshot, regenerated on demand (inert if the module isn't installed)
+wiki/dashboard.html

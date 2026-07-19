@@ -67,3 +67,11 @@ else
     echo ""
     echo "Warning: last_synced_sha is '$after', expected '$head'. Check the run output / log.md." >&2
 fi
+
+# Best-effort dashboard refresh (dashboard module, if installed) - must not fail the sync.
+dashboard_script="$vault/scripts/dashboard.sh"
+if [[ -f "$dashboard_script" ]]; then
+    if ! "$dashboard_script"; then
+        echo "Warning: dashboard refresh failed after sync - run 'scripts/dashboard.sh' manually." >&2
+    fi
+fi

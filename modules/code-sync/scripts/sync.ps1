@@ -66,3 +66,13 @@ if ($after -eq $head) {
 } else {
     Write-Host "`nWarning: last_synced_sha is '$after', expected '$head'. Check the run output / log.md." -ForegroundColor Yellow
 }
+
+# Best-effort dashboard refresh (dashboard module, if installed) - must not fail the sync.
+$dashboardScript = Join-Path $vault "scripts\dashboard.ps1"
+if (Test-Path $dashboardScript) {
+    try {
+        & $dashboardScript
+    } catch {
+        Write-Host "Warning: dashboard refresh failed after sync - run 'scripts\dashboard.ps1' manually. ($_)" -ForegroundColor Yellow
+    }
+}
