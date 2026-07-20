@@ -122,6 +122,14 @@ data sources beyond what's already on disk):
    - *(code-sync only)*: `run sync`, `set commit noise`.
    - **Not** a button: Query has no fixed trigger phrase ("just ask") — the
      dashboard notes this instead of faking a button for it.
+   - Each button carries a `data-tooltip` one-liner (custom CSS `::after`/
+     `::before` popup on hover/focus, not the native `title` attribute — chosen
+     for dark-theme-consistent styling). Gotcha hit while implementing this in
+     the two real vaults ahead of the kit: `.card` has `overflow-x: auto` for
+     wide tables, and per the CSS spec that implicitly makes `overflow-y: auto`
+     too, which clips a tooltip popping outside the card's box. Fix: a
+     `.buttons-card` class on that one card with `overflow: visible`, applied
+     only where nothing needs horizontal scrolling anyway.
 
 Explicitly deferred (discussed, not in v1 — revisit only if it turns out to
 matter in practice):
