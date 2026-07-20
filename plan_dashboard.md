@@ -117,8 +117,9 @@ data sources beyond what's already on disk):
 7. **Daily Use buttons** — copy-to-clipboard only, no execution:
    - Universal: `run dashboard` (self-referential refresh reminder — useful if
      the human reopens this snapshot days later and forgets the trigger
-     phrase), `process it` (Ingest a file already dropped in `raw/`),
-     `archive this`, `run lint`.
+     phrase), `ingest raw` (Ingest a file already dropped in `raw/` — renamed
+     from the earlier `process it` for readability, ported back from the two
+     real vaults), `archive this`, `run lint`.
    - *(code-sync only)*: `run sync`, `set commit noise`.
    - **Not** a button: Query has no fixed trigger phrase ("just ask") — the
      dashboard notes this instead of faking a button for it.
