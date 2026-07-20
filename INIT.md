@@ -34,8 +34,9 @@ Ask these in conversation, not as a wall of questions at once — a natural back
 3. **"What language should the wiki be written in?"** — Default proposal: follow the source material's own language (code comments, docs). Note conversation language and storage language are independent — confirm the human understands they can ask in their own language regardless of what the wiki is written in. *(Question tool: make "follow the source material's language" the recommended option.)* → `{{LANGUAGE_CONVENTION}}`.
 4. *(code-sync only)* **"What's the project repo's absolute path?"** — ask in chat, and include an example so the human knows the expected shape (Windows: `D:\Programming\shop-api`; macOS/Linux: `/Users/anna/dev/shop-api`). Don't assume the vault is a sibling directory of the repo — ask, don't infer. → `{{PROJECT_REPO_PATH}}`. Then get `{{MAIN_BRANCH}}` **without making the human type it**: run `git -C <path> branch --list` (or `branch -r` if local branches look incomplete) and present the real branches as options, recommending the repo's default branch — a picked branch can't be a typo.
 5. *(code-sync only)* **"Any known commit-noise patterns I should skip during Sync?"** — always give concrete examples so the human knows what counts as noise: a `[CHECK]`/`chore:`/`[skip ci]` prefix convention, automated version-bump or dependency-update commits, formatting-only commits. *(Question tool: make "don't know yet — refine after the first few real Syncs" the recommended option, plus an "I have some" option whose patterns arrive via "Other".)* If the human doesn't know yet, say that's fine. → `{{SYNC_TRIAGE_RULES}}` (may start empty).
+6. *(code-sync only)* **"Want a commit-message prefix that forces a commit through Sync even if it'd otherwise match a noise pattern?"** — frame it as the inverse of #5: noise rules are exclusion, this is an opt-in override for the rare commit that looks like noise but isn't (e.g. a `chore:` commit that also fixes a subtle bug). Propose `[WIKI]` as the default. *(Question tool: make "use the default `[WIKI]`" the recommended option, plus "skip this — no override convention" and an "Other" for a custom token.)* → `{{SYNC_SIGNAL_PREFIX}}` (may be left unset, same as #5).
 
-**Done when:** every `{{PLACEHOLDER}}` referenced in Step 2 below has an answer (or an explicit "leave empty, fill in later" for #5).
+**Done when:** every `{{PLACEHOLDER}}` referenced in Step 2 below has an answer (or an explicit "leave empty, fill in later"/"skip this" for #5 and #6).
 
 ---
 
@@ -86,7 +87,7 @@ Ask these in conversation, not as a wall of questions at once — a natural back
    ## Daily Use
 
    - **`run sync`** *(code-sync)* — incremental update from new commits on `{{MAIN_BRANCH}}`. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
-   - **`set commit noise`** *(code-sync)* — tune which commits Sync skips.
+   - **`set commit noise`** *(code-sync)* — tune which commits Sync skips, and set the signal prefix (default `[WIKI]`) that forces a commit through regardless.
    - **Ingest** — drop a document into `raw/` and say "process it", or give a filesystem path in chat.
    - **Query** — just ask; answers cite wiki pages and `file:line`. Say "archive this" to file an answer yourself, even one Claude didn't offer to.
    - **`run lint`** — periodic consistency check across the wiki.

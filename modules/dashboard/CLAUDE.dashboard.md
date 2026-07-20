@@ -53,7 +53,7 @@ All of it computed from files on disk, no free-form reading required:
 7. **Installed modules** — which optional modules this vault has installed (detected by presence of `wiki-state.json` etc.), since vaults built from this kit can differ.
 8. **Daily Use buttons** — copy-to-clipboard only, nothing executes from the page itself:
    - Universal: `process it`, `archive this`, `run lint`.
-   - *(code-sync only)*: `run sync`, `set commit noise`.
+   - *(code-sync only)*: `run sync`, `set commit noise` (also sets the signal-prefix override).
    - Query has no fixed trigger phrase ("just ask") — the dashboard notes this instead of faking a button for it.
 
 The generated page is a **snapshot**, not a live view — only as fresh as the last time the script ran. Re-run it any time with "run dashboard", or rely on the automatic post-sync refresh in code-sync vaults.

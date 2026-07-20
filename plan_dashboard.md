@@ -120,7 +120,7 @@ data sources beyond what's already on disk):
      phrase), `ingest raw` (Ingest a file already dropped in `raw/` — renamed
      from the earlier `process it` for readability, ported back from the two
      real vaults), `archive this`, `run lint`.
-   - *(code-sync only)*: `run sync`, `set commit noise`.
+   - *(code-sync only)*: `run sync`, `set commit noise` (also sets the signal-prefix override).
    - **Not** a button: Query has no fixed trigger phrase ("just ask") — the
      dashboard notes this instead of faking a button for it.
    - Each button carries a `data-tooltip` one-liner (custom CSS `::after`/
