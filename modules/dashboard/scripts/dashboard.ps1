@@ -33,6 +33,10 @@ if (Test-Path $claudeMdPath) {
 $installedModules = @("dashboard")
 $isCodeSync = Test-Path $statePath
 if ($isCodeSync) { $installedModules = @("code-sync") + $installedModules }
+$isDecisions = Test-Path (Join-Path $wikiDir "decisions") -PathType Container
+if ($isDecisions) { $installedModules += "decisions" }
+$isRoadmap = Test-Path (Join-Path $wikiDir "plan.md") -PathType Leaf
+if ($isRoadmap) { $installedModules += "roadmap" }
 
 # --- Log stats ---
 $logPath = Join-Path $wikiDir "log.md"
@@ -116,7 +120,7 @@ foreach ($f in $mdFiles) {
     }
 }
 
-$excludedFromOrphans = @("overview", "index", "log")
+$excludedFromOrphans = @("overview", "index", "log", "question")
 $redLinks = @()
 foreach ($target in $linkMentions.Keys) {
     if (-not $pageNames.Contains($target)) {
@@ -140,16 +144,15 @@ $overdueRedLinkCount = @($redLinks | Where-Object { $_.Count -ge 3 }).Count
 if ($overdueRedLinkCount -gt 0) {
     $healthEmoji = "🔴"
     $healthText = "$overdueRedLinkCount red link(s) at or above the ≥3-mention threshold — worth filling"
-} elseif ($redLinks.Count -gt 0 -or $orphans.Count -gt 0 -or $supersededCount -gt 0) {
+} elseif ($redLinks.Count -gt 0 -or $orphans.Count -gt 0) {
     $healthEmoji = "🟡"
     $parts = @()
     if ($redLinks.Count -gt 0) { $parts += "$($redLinks.Count) red link(s)" }
     if ($orphans.Count -gt 0) { $parts += "$($orphans.Count) orphan page(s)" }
-    if ($supersededCount -gt 0) { $parts += "$supersededCount open ⚠️ Superseded marker(s)" }
     $healthText = ($parts -join ", ")
 } else {
     $healthEmoji = "🟢"
-    $healthText = "No red links, orphans, or open contradictions"
+    $healthText = "No red links or orphan pages"
 }
 
 # --- Sync status (code-sync only) ---
@@ -265,7 +268,7 @@ if ($orphans.Count -eq 0) {
 $healthStateClass = ""
 if ($overdueRedLinkCount -gt 0) {
     $healthStateClass = " state-danger"
-} elseif ($redLinks.Count -gt 0 -or $orphans.Count -gt 0 -or $supersededCount -gt 0) {
+} elseif ($redLinks.Count -gt 0 -or $orphans.Count -gt 0) {
     $healthStateClass = " state-warn"
 }
 $healthCard = @"
@@ -278,7 +281,7 @@ $healthCard = @"
       <td><ul class="plain">$orphansHtml</ul></td>
     </tr>
   </table>
-  <div class="stat-row"><span>open ⚠️ Superseded markers</span><span class="n">$supersededCount</span></div>
+  <div class="stat-row"><span>⚠️ Superseded markers (history annotations, informational)</span><span class="n">$supersededCount</span></div>
 </div>
 "@
 
@@ -321,6 +324,9 @@ $buttons = @(
 if ($isCodeSync) {
     $buttons += @{ label = "run sync"; phrase = "run sync" }
     $buttons += @{ label = "set commit noise"; phrase = "set commit noise" }
+}
+if ($isDecisions) {
+    $buttons += @{ label = "record decision"; phrase = "record decision" }
 }
 $buttonsHtml = ($buttons | ForEach-Object {
     "<button class=`"copy-btn`" data-copy=`"$(HtmlEscape $_.phrase)`">$(HtmlEscape $_.label)</button>"

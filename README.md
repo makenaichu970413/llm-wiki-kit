@@ -35,9 +35,11 @@ The running vault's own `CLAUDE.md` defines all of this in full; Init also gener
 - **`run sync`** *(code-sync)* — incremental update from new commits on the tracked branch: diff since `last_synced_sha`, skip noise commits, update only the affected pages. Also runnable headless via `scripts/sync.ps1` / `sync.sh`.
 - **`set commit noise`** *(code-sync)* — tune which commits Sync skips: Claude scans your recent `git log`, shows the noise patterns it actually observed (with frequencies), you multi-select which to skip. Same flow also sets the **signal prefix** (default `[WIKI]`) — stamp it on a commit message to force that commit through Sync even if it'd otherwise match a noise pattern.
 - **Ingest** — drop a document into `raw/` and say "process it", or just give a path in chat ("ingest D:\Downloads\note.pdf") and Claude copies it into `raw/` for you (renaming junk filenames to `<content-date>_<slug>`): summary page + updates to every affected entity page.
-- **Query** — just ask; answers cite wiki pages and `file:line`. If an answer looks worth keeping, Claude proposes filing it under `wiki/answers/` — nothing gets written there without you confirming. Say **`archive this`** *(trigger phrase)* any time to file (or re-file) an answer yourself, even one Claude didn't think to offer — it also folds the finding back into the entity pages it touches, not just the answers file.
-- **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling.
-- **`run dashboard`** *(dashboard module)* — regenerates `wiki/dashboard.html`: log stats, health checks (red links, orphans, open contradictions), and one-click-copy Daily Use phrases. A real script, not an LLM computation — also runnable headless via `scripts/dashboard.ps1` / `dashboard.sh`, and auto-refreshed at the end of `run sync` if code-sync is also installed.
+- **Query** — just ask; answers cite wiki pages and `file:line`. If an answer looks worth keeping, Claude proposes filing it under `wiki/answers/` — nothing gets written there without you confirming. Say **`archive this`** *(trigger phrase)* any time to file (or re-file) an answer yourself, even one Claude didn't think to offer — it also folds the finding back into the entity pages it touches, not just the answers file. A question that genuinely can't be answered yet gets parked in `wiki/question.md` and removed only once the answer is written back into the wiki.
+- **`run lint`** — periodic consistency check: contradictions between pages, stale claims, orphan pages, red links worth filling, parked questions that later work actually answered.
+- **`run dashboard`** *(dashboard module)* — regenerates `wiki/dashboard.html`: log stats, health checks (red links, orphans, `⚠️ Superseded` counts), and one-click-copy Daily Use phrases. A real script, not an LLM computation — also runnable headless via `scripts/dashboard.ps1` / `dashboard.sh`, and auto-refreshed at the end of `run sync` if code-sync is also installed.
+- **`record decision`** *(decisions module)* — file the choice just made as an Architecture Decision Record in `wiki/decisions/` (numbered, with a proposed/accepted/superseded lifecycle); Claude drafts it from the discussion, you confirm the status. Claude also offers this on its own when a genuine fork-in-the-road surfaces in other work.
+- **Plan** *(roadmap module)* — `wiki/plan.md` holds phases, stories with acceptance criteria, and exit-condition gates. Claude proposes progress ticks and edits during normal work; completion calls and structural changes always come back to you. No trigger phrase — it's maintained as part of everything else.
 
 ## What's in this repo
 
@@ -48,8 +50,8 @@ llm-wiki-kit/
 ├── INIT.md              # the initialization script — what Claude follows in step 3 above
 ├── kit-assets/          # this README's own images (e.g. the graph-view illustration above) — not vault content
 ├── core/                # copied into every vault, regardless of what it tracks
-│   ├── CLAUDE.core.md   # mechanism-layer schema: page format, index/log rules, Ingest/Query/Lint
-│   └── wiki/            # empty index.md/log.md templates
+│   ├── CLAUDE.core.md   # mechanism-layer schema: page format, index/log/question rules, Ingest/Query/Lint
+│   └── wiki/            # empty index.md/log.md/question.md templates
 ├── modules/
 │   ├── code-sync/       # optional: install when the vault tracks a git repo
 │   │   ├── CLAUDE.code-sync.md   # Bootstrap + Sync workflows
@@ -57,12 +59,17 @@ llm-wiki-kit/
 │   │   └── scripts/
 │   │       ├── sync.ps1          # Windows
 │   │       └── sync.sh           # macOS/Linux
-│   └── dashboard/       # optional: generated wiki/dashboard.html snapshot, works with or without code-sync
-│       ├── CLAUDE.dashboard.md   # "run dashboard" workflow
-│       ├── assets/dashboard.template.html
-│       └── scripts/
-│           ├── dashboard.ps1     # Windows
-│           └── dashboard.sh      # macOS/Linux
+│   ├── dashboard/       # optional: generated wiki/dashboard.html snapshot, works with or without code-sync
+│   │   ├── CLAUDE.dashboard.md   # "run dashboard" workflow
+│   │   ├── assets/dashboard.template.html
+│   │   └── scripts/
+│   │       ├── dashboard.ps1     # Windows
+│   │       └── dashboard.sh     # macOS/Linux
+│   ├── decisions/       # optional: Architecture Decision Records (wiki/decisions/) — pure schema, no scripts
+│   │   └── CLAUDE.decisions.md   # ADR format, lifecycle, "record decision" workflow
+│   └── roadmap/         # optional: maintained plan (wiki/plan.md) — pure schema, no scripts
+│       ├── CLAUDE.roadmap.md     # plan format, progress discipline
+│       └── wiki/plan.md          # skeleton template
 ├── examples/
 │   └── chain-metrics/CLAUDE.md   # a real, working assembled CLAUDE.md — core + code-sync filled in
 └── CHANGELOG.md
@@ -71,7 +78,8 @@ llm-wiki-kit/
 ## Design principles (see IDEA.md for the full reasoning)
 
 - **Core is 100% standard.** Page frontmatter, `index.md`/`log.md` rules, anti-drift conventions (`⚠️ Superseded`/`⚠️ Removed`), and the Ingest/Query/Lint workflows don't change based on what the vault is about.
-- **Modules are opt-in, scenario-specific, and independent of each other.** `code-sync` installs only if the vault tracks a git repo; `dashboard` installs only if the human wants a generated stats/health snapshot — either, both, or neither. A reading-notes vault or a research-topic vault can stay core-only.
+- **Modules are opt-in, scenario-specific, and independent of each other.** `code-sync` installs only if the vault tracks a git repo; `dashboard` only if the human wants a generated stats/health snapshot; `decisions` (ADRs) and `roadmap` (a maintained plan) only if the vault records choices and commitments, not just observations — any subset, including none. A reading-notes vault or a research-topic vault can stay core-only.
+- **Descriptive pages follow the source; prescriptive pages follow the human.** Most of a vault describes what *is* — those pages update from source material (Sync, Ingest). `wiki/decisions/` and `wiki/plan.md` record what the human *chose and committed to* — no workflow may rewrite them off source material alone; when code and a decision diverge, that's **drift to report**, not a page to auto-correct.
 - **Ontology is never templated — it's proposed live.** Entity categories, page templates, language convention, and domain glossary are specific to each vault's subject matter. `INIT.md` has the LLM scan the actual source material and propose categories; the human confirms or corrects. Nothing here pre-guesses what your project's "entities" are.
 - **One-way updates.** Improvements discovered in a running vault flow back into this kit manually — the kit never auto-updates a live vault's `CLAUDE.md`. Each vault's schema is its own living document.
 

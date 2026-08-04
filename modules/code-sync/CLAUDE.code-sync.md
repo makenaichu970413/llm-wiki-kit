@@ -54,6 +54,16 @@ The project code lives at the path in `wiki-state.json → project_repo`. Code i
   default. Set/changed via the same "set commit noise" flow below.
 -->
 
+## log.md — bootstrap / sync / config prefixes
+
+`bootstrap`, `sync`, and `config` join the log prefix set:
+
+```
+## [YYYY-MM-DD] bootstrap | <subject>
+## [YYYY-MM-DD] sync | <old>..<new> (<subject>)
+## [YYYY-MM-DD] config | <what was tuned — noise rules, signal prefix>
+```
+
 ## Tuning sync noise — trigger phrase: "set commit noise"
 
 The noise rules start rough (often empty — "refine after the first few real Syncs") and this is the defined refine action. When the human says **"set commit noise"** (or any similar phrasing — this is a convention, not a parser):

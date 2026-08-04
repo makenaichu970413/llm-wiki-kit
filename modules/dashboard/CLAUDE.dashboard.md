@@ -43,17 +43,18 @@ All of it computed from files on disk, no free-form reading required:
 
 1. **One-line health banner** — a traffic-light rollup (🟢/🟡/🔴) synthesizing the counts below, so the human doesn't have to read every section to know if anything needs attention.
 2. **Sync status** *(code-sync only)* — `last_synced_sha` (short form) from `wiki-state.json`, and commits behind `origin/{{MAIN_BRANCH}}`.
-3. **Log stats** — total `log.md` entries, breakdown by op (`init`/`ingest`/`query`/`answer`/`lint`/`bootstrap`/`sync`/`config` as applicable to this vault), count tagged `⚠️ Archived`, and a **query → answer conversion ratio** (how many `query` entries have a matching `answer`/archive entry for the same question).
+3. **Log stats** — total `log.md` entries, breakdown by op (`init`/`ingest`/`query`/`answer`/`question`/`lint`/`bootstrap`/`sync`/`config`/`decision`/`plan` as applicable to this vault — the scripts count whatever ops actually appear, no fixed list), count tagged `⚠️ Archived`, and a **query → answer conversion ratio** (how many `query` entries have a matching `answer`/archive entry for the same question).
 4. **Recent activity** — the last 10 `log.md` headers, most recent first.
 5. **Health check**:
    - Red links (wikilink targets with no matching page file), **sorted by mention count**, flagging any at or above the Lint "≥3 mentions" threshold as "overdue" — reuses the kit's existing heuristic rather than inventing a new one.
-   - Orphan pages (no inbound `[[link]]`, excluding `overview.md`, `index.md`, `log.md`).
-   - Count of open `⚠️ Superseded` markers still present in wiki pages.
+   - Orphan pages (no inbound `[[link]]`, excluding `overview.md`, `index.md`, `log.md`, `question.md` — hub files, not entities).
+   - Count of `⚠️ Superseded` markers across wiki pages — **informational only** (per the core page-format rule they're history annotations, not open issues), so this count never degrades the health banner.
 6. **Knowledge graph** — an Obsidian-style force-directed graph of every wiki page (node) and the `[[wikilinks]]` between them that resolve to a real page (edge; red links aren't drawn as edges — they already show up in the Health check above). Nodes are colored by their top-level `wiki/` subfolder and sized by inbound-link count (degree); drag a node, drag the background to pan, scroll to zoom, double-click to reset. The layout itself (node positions) is a live client-side physics simulation, not something the script computes — the script only computes the node/edge *data* (ids, labels, groups, degrees), deterministically, the same as every other card.
-7. **Installed modules** — which optional modules this vault has installed (detected by presence of `wiki-state.json` etc.), since vaults built from this kit can differ.
+7. **Installed modules** — which optional modules this vault has installed (detected by marker files: `wiki-state.json` for code-sync, `wiki/decisions/` for decisions, `wiki/plan.md` for roadmap), since vaults built from this kit can differ.
 8. **Daily Use buttons** — copy-to-clipboard only, nothing executes from the page itself:
    - Universal: `process it`, `archive this`, `run lint`.
    - *(code-sync only)*: `run sync`, `set commit noise` (also sets the signal-prefix override).
+   - *(decisions only)*: `record decision`.
    - Query has no fixed trigger phrase ("just ask") — the dashboard notes this instead of faking a button for it.
 
 The generated page is a **snapshot**, not a live view — only as fresh as the last time the script ran. Re-run it any time with "run dashboard", or rely on the automatic post-sync refresh in code-sync vaults.

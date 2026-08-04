@@ -39,6 +39,10 @@ fi
 # --- Installed modules ---
 is_code_sync=0
 if [[ -f "$state_path" ]]; then is_code_sync=1; fi
+is_decisions=0
+if [[ -d "$wiki_dir/decisions" ]]; then is_decisions=1; fi
+is_roadmap=0
+if [[ -f "$wiki_dir/plan.md" ]]; then is_roadmap=1; fi
 
 # --- Log stats ---
 log_path="$wiki_dir/log.md"
@@ -217,7 +221,7 @@ orphans=()
 if [[ -s "$tmp_pagenames" ]]; then
     while read -r name; do
         [[ -z "$name" ]] && continue
-        case "$name" in overview|index|log) continue;; esac
+        case "$name" in overview|index|log|question) continue;; esac
         if ! grep -Fxq "$name" "$tmp_targets" 2>/dev/null; then
             orphans+=("$name")
         fi
@@ -228,16 +232,15 @@ fi
 if (( overdue_red_links > 0 )); then
     health_emoji="🔴"
     health_text="$overdue_red_links red link(s) at or above the ≥3-mention threshold - worth filling"
-elif (( ${#red_links[@]} > 0 || ${#orphans[@]} > 0 || superseded_count > 0 )); then
+elif (( ${#red_links[@]} > 0 || ${#orphans[@]} > 0 )); then
     health_emoji="🟡"
     parts=()
     (( ${#red_links[@]} > 0 )) && parts+=("${#red_links[@]} red link(s)")
     (( ${#orphans[@]} > 0 )) && parts+=("${#orphans[@]} orphan page(s)")
-    (( superseded_count > 0 )) && parts+=("$superseded_count open ⚠️ Superseded marker(s)")
     health_text="$(IFS=', '; echo "${parts[*]}")"
 else
     health_emoji="🟢"
-    health_text="No red links, orphans, or open contradictions"
+    health_text="No red links or orphan pages"
 fi
 
 # --- Sync status (code-sync only) ---
@@ -360,7 +363,7 @@ fi
 health_state_class=""
 if (( overdue_red_links > 0 )); then
     health_state_class=" state-danger"
-elif (( ${#red_links[@]} > 0 || ${#orphans[@]} > 0 || superseded_count > 0 )); then
+elif (( ${#red_links[@]} > 0 || ${#orphans[@]} > 0 )); then
     health_state_class=" state-warn"
 fi
 cat > "$health_card_file" <<EOF
@@ -373,7 +376,7 @@ cat > "$health_card_file" <<EOF
       <td><ul class="plain">$orphans_html</ul></td>
     </tr>
   </table>
-  <div class="stat-row"><span>open ⚠️ Superseded markers</span><span class="n">$superseded_count</span></div>
+  <div class="stat-row"><span>⚠️ Superseded markers (history annotations, informational)</span><span class="n">$superseded_count</span></div>
 </div>
 EOF
 
@@ -419,6 +422,8 @@ EOF
 modules_card_file="$tmp_dir/modules_card.html"
 modules_html="<li>dashboard</li>"
 if (( is_code_sync )); then modules_html="<li>code-sync</li>$modules_html"; fi
+if (( is_decisions )); then modules_html="$modules_html<li>decisions</li>"; fi
+if (( is_roadmap )); then modules_html="$modules_html<li>roadmap</li>"; fi
 cat > "$modules_card_file" <<EOF
 <div class="card">
   <h2>🧩 Installed modules</h2>
@@ -435,6 +440,10 @@ if (( is_code_sync )); then
     buttons_html="$buttons_html
 <button class=\"copy-btn\" data-copy=\"run sync\">run sync</button>
 <button class=\"copy-btn\" data-copy=\"set commit noise\">set commit noise</button>"
+fi
+if (( is_decisions )); then
+    buttons_html="$buttons_html
+<button class=\"copy-btn\" data-copy=\"record decision\">record decision</button>"
 fi
 cat > "$buttons_card_file" <<EOF
 <div class="card">

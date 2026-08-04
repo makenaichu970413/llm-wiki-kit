@@ -27,6 +27,7 @@ You are the **maintainer of this wiki**. The human curates sources and asks ques
 └── wiki/              # the wiki. You own this layer entirely.
     ├── index.md       # content catalog — update on EVERY change
     ├── log.md         # append-only chronological record
+    ├── question.md    # open-questions parking lot — entries leave once answered AND written back
     ├── overview.md    # project one-pager (llms.txt-style entry point)
     ├── {{ENTITY_CATEGORIES}}/   # one subdirectory per entity type this vault tracks
     ├── sources/       # one summary page per ingested raw/ document
@@ -82,7 +83,8 @@ synced_at_sha: <sha>           # code-sync only: commit of the tracked repo this
 Rules:
 - **Link liberally** with `[[wikilinks]]`. A red link (page doesn't exist yet) is a TODO marker, not an error.
 - {{PAGE_TEMPLATES}} — every entity category should have an agreed "what must this page state" checklist (e.g. a pipeline page states purpose/inputs/outputs/schedule/known issues; a table page states layer/producer/consumer/key columns/grain). Init proposes one per category during the Interview; write it here once agreed.
-- When new information **contradicts** an existing page, don't silently overwrite: update the claim and add a `> ⚠️ Superseded:` blockquote noting what changed, when, and the source.
+- When new information **contradicts** an existing page, don't silently overwrite: update the claim and add a `> ⚠️ Superseded:` blockquote noting what changed, when, and the source. The blockquote is a **history annotation, not an open task** — the claim above it is already current, so its presence never counts as an unresolved problem. It stays with the page; Lint may propose pruning one that no longer adds context (human approves).
+- A page may carry a **maintenance hint** — a short note naming a future trigger and the edit it requires (*"maintenance hint: once X ships, rewrite this section / delete that caveat"*). Whenever an edit matches a hint's trigger, execute the hint as part of that edit and remove it once spent — a stale hint that already fired is worse than none. Lint checks for fired-but-unremoved hints.
 - Keep pages focused. One entity per page. Split when a page exceeds ~300 lines.
 
 ## index.md
@@ -97,15 +99,26 @@ Append-only. Every operation gets an entry with a grep-able prefix:
 ## [YYYY-MM-DD] ingest | <subject>
 ## [YYYY-MM-DD] query | "<question>"
 ## [YYYY-MM-DD] answer | "<question>"
+## [YYYY-MM-DD] question | "<question>" <parked | answered → written back>
 ## [YYYY-MM-DD] lint | <N> contradictions found, <M> orphans
 ```
 
-<!-- {{CODE_SYNC_LOG_PREFIXES}} — if code-sync is installed, `bootstrap` and `sync` join
-     the prefix set: `## [YYYY-MM-DD] bootstrap | <subject>`, `## [YYYY-MM-DD] sync | <old>..<new> (<subject>)`. -->
+<!-- {{CODE_SYNC_LOG_PREFIXES}} — if code-sync is installed, `bootstrap`, `sync` and `config` join
+     the prefix set: `## [YYYY-MM-DD] bootstrap | <subject>`, `## [YYYY-MM-DD] sync | <old>..<new> (<subject>)`,
+     `## [YYYY-MM-DD] config | <what was tuned — noise rules, signal prefix>`. Other modules bring their
+     own prefix sections (decision, plan) — those merge here too. -->
 
 One line of detail under each: what pages were touched, what changed.
 
 **Reading log.md doesn't mean reading all of it.** Before writing a new entry or checking convention, `grep "^## \["` for headers instead of reading the file start to finish — and skip past the body of any header tagged `⚠️ Archived <date>` (see Lint below) unless the current task specifically needs that entry's detail (e.g. a page cites it as the origin of a claim). Nothing is ever deleted or rewritten; the tag just means routine reads can pass over it. This is what keeps append-only-forever growth tolerable without ever discarding history.
+
+## question.md
+
+The parking lot for questions **without answers yet** — the complement of `wiki/answers/` (which holds resolved investigations). An entry is a few lines: the question, why it matters / where it came up, and any pointer that would help answer it later.
+
+- **What lands here:** a Query you can't answer from the wiki or the sources (needs information that doesn't exist yet, external verification, or a call only the human can make); a loose end another workflow surfaces but can't chase right now; anything the human parks directly ("add this to open questions").
+- **What leaves, and how:** when an entry gets answered — in a later session, by a new source, by the human — write the answer **into the affected wiki page(s)**, not just chat, then remove the entry. Removal without write-back is forbidden; the file's contract is that nothing exits until the wiki itself holds the answer.
+- Both parking and resolving get a `question |` log entry. An empty `question.md` is the healthy state, not a neglected one.
 
 ## Core workflows
 
@@ -134,6 +147,8 @@ From there the flow is identical in every case: read it → discuss key takeaway
 
 Read `index.md` → open relevant pages → answer with citations (`[[page]]` + a locator into the source — `file:line` for code, a section/page reference for a document).
 
+**When you can't answer** — the wiki and the sources genuinely don't hold it, or it needs a call only the human can make — say so honestly and offer to park the question in `question.md` (see its section above) instead of letting it evaporate with the session. Don't park questions you simply haven't looked hard enough for.
+
 **When to offer filing to `wiki/answers/`, and when not to:**
 
 - **Offer** when the answer took real cross-referencing (multiple pages/files, not a single lookup), resolved something previously unknown or ambiguous (a root cause, a design rationale, a contradiction between sources), or is likely to recur for a future session or person.
@@ -152,13 +167,13 @@ The heuristic above can miss in either direction — an offer declined in the mo
 
 ### Lint (periodic)
 
-Check for: contradictions between pages, claims older than their source citations (stale `synced_at_sha` or an un-revisited `source_refs`), orphan pages with no inbound links, red links worth filling, concepts mentioned ≥3 times without their own page, and `log.md` entries worth archiving (see below). Report findings; fix what's approved. Log it.
+Check for: contradictions between pages, claims older than their source citations (stale `synced_at_sha` or an un-revisited `source_refs`), orphan pages with no inbound links, red links worth filling, concepts mentioned ≥3 times without their own page, `question.md` entries that later work has actually answered but nobody wrote back (and long-parked entries worth re-surfacing), maintenance hints whose trigger has already fired but which were never executed/removed, and `log.md` entries worth archiving (see below). Report findings; fix what's approved. Log it.
 
 <!-- A practical way to run the orphan/red-link checks mechanically rather than by eye:
      extract every `[[wikilink]]` target across wiki/ (one line per match), extract every
      actual page filename, then diff the two sets — targets with no matching file are red
-     links; files with no matching target (excluding index.md/log.md, which are hubs, not
-     entities) are orphans. Far more reliable than eyeballing 40+ pages. -->
+     links; files with no matching target (excluding index.md/log.md/question.md, which are
+     hubs, not entities) are orphans. Far more reliable than eyeballing 40+ pages. -->
 
 **log.md archiving.** Entries are never deleted or rewritten — but an old entry can be tagged `⚠️ Archived <date>` (appended to its header line: `## [YYYY-MM-DD] <op> | <subject> — ⚠️ Archived <YYYY-MM-DD>`) once its content is fully reflected elsewhere and unlikely to be needed verbatim soon. This is non-destructive and reversible: the full entry stays exactly as written, only routine reads skip its body (per the rule in `log.md` above). Prefer tagging entries whose content is domain findings already backfilled into wiki pages; leave unmarked anything with detail that lives nowhere else — process/methodology notes (a batch plan, a remark about the wiki-maintenance workflow itself), or an entry worth keeping as a reference for how detailed a future entry should be. This is a judgment call like any other Lint fix — propose it, don't do it silently. Log the marking itself as a normal lint entry.
 
