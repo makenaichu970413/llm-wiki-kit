@@ -22,7 +22,7 @@ A reusable template for setting up an **LLM Wiki** — a persistent, LLM-maintai
    ```text
    init vault
    ```
-4. Answer the interview questions (~5 — clickable option cards for the choices, plain chat for the open-ended ones like project description and repo path; falls back to fully conversational if the environment has no question tool). Claude assembles a single `CLAUDE.md` for your vault, **deletes the kit's own scaffolding** (`core/`, `modules/`, `examples/`, `INIT.md`, etc. — the vault is initialized in-place), and confirms it's ready.
+4. Answer the interview questions (~6 — clickable option cards for the choices, plain chat for the open-ended ones like project description, repo path, and related vaults; falls back to fully conversational if the environment has no question tool). Claude assembles a single `CLAUDE.md` for your vault, **deletes the kit's own scaffolding** (`core/`, `modules/`, `examples/`, `INIT.md`, etc. — the vault is initialized in-place), and confirms it's ready.
 5. Confirm the entry Claude drafts for your user-global `~/.claude/CLAUDE.md` — this is the pointer that makes sessions *in your project repo* consult the wiki instead of re-deriving answers from scratch. Without it the wiki silently goes unused.
 6. Follow the handoff instructions Claude gives you (run Bootstrap if you're tracking a code repo, or ingest your first source if not).
 
@@ -40,6 +40,7 @@ The running vault's own `CLAUDE.md` defines all of this in full; Init also gener
 - **`run dashboard`** *(dashboard module)* — regenerates `wiki/dashboard.html`: log stats, health checks (red links, orphans, `⚠️ Superseded` counts), and one-click-copy Daily Use phrases. A real script, not an LLM computation — also runnable headless via `scripts/dashboard.ps1` / `dashboard.sh`, and auto-refreshed at the end of `run sync` if code-sync is also installed.
 - **`record decision`** *(decisions module)* — file the choice just made as an Architecture Decision Record in `wiki/decisions/` (numbered, with a proposed/accepted/superseded lifecycle); Claude drafts it from the discussion, you confirm the status. Claude also offers this on its own when a genuine fork-in-the-road surfaces in other work.
 - **Plan** *(roadmap module)* — `wiki/plan.md` holds phases, stories with acceptance criteria, and exit-condition gates. Claude proposes progress ticks and edits during normal work; completion calls and structural changes always come back to you. No trigger phrase — it's maintained as part of everything else.
+- **`link wiki`** *(related-wikis module)* — register or update a sibling vault's entry in `wiki/related-wikis.md` (name, path, which side owns what). The sibling doesn't need to exist yet — a planned path is fine until it does.
 
 ## What's in this repo
 
@@ -67,9 +68,12 @@ llm-wiki-kit/
 │   │       └── dashboard.sh     # macOS/Linux
 │   ├── decisions/       # optional: Architecture Decision Records (wiki/decisions/) — pure schema, no scripts
 │   │   └── CLAUDE.decisions.md   # ADR format, lifecycle, "record decision" workflow
-│   └── roadmap/         # optional: maintained plan (wiki/plan.md) — pure schema, no scripts
-│       ├── CLAUDE.roadmap.md     # plan format, progress discipline
-│       └── wiki/plan.md          # skeleton template
+│   ├── roadmap/         # optional: maintained plan (wiki/plan.md) — pure schema, no scripts
+│   │   ├── CLAUDE.roadmap.md     # plan format, progress discipline
+│   │   └── wiki/plan.md          # skeleton template
+│   └── related-wikis/  # optional: sibling-vault registry (wiki/related-wikis.md) — pure schema, no scripts
+│       ├── CLAUDE.related-wikis.md   # registry format, cross-vault reference convention, "link wiki" workflow
+│       └── wiki/related-wikis.md     # skeleton template
 ├── examples/
 │   └── chain-metrics/CLAUDE.md   # a real, working assembled CLAUDE.md — core + code-sync filled in
 └── CHANGELOG.md
@@ -78,7 +82,7 @@ llm-wiki-kit/
 ## Design principles (see IDEA.md for the full reasoning)
 
 - **Core is 100% standard.** Page frontmatter, `index.md`/`log.md` rules, anti-drift conventions (`⚠️ Superseded`/`⚠️ Removed`), and the Ingest/Query/Lint workflows don't change based on what the vault is about.
-- **Modules are opt-in, scenario-specific, and independent of each other.** `code-sync` installs only if the vault tracks a git repo; `dashboard` only if the human wants a generated stats/health snapshot; `decisions` (ADRs) and `roadmap` (a maintained plan) only if the vault records choices and commitments, not just observations — any subset, including none. A reading-notes vault or a research-topic vault can stay core-only.
+- **Modules are opt-in, scenario-specific, and independent of each other.** `code-sync` installs only if the vault tracks a git repo; `dashboard` only if the human wants a generated stats/health snapshot; `decisions` (ADRs) and `roadmap` (a maintained plan) only if the vault records choices and commitments, not just observations; `related-wikis` only if this vault's subject matter genuinely runs into another vault's (a UI vault and its API vault, a service and the platform it depends on) — any subset, including none. A reading-notes vault or a research-topic vault can stay core-only.
 - **Descriptive pages follow the source; prescriptive pages follow the human.** Most of a vault describes what *is* — those pages update from source material (Sync, Ingest). `wiki/decisions/` and `wiki/plan.md` record what the human *chose and committed to* — no workflow may rewrite them off source material alone; when code and a decision diverge, that's **drift to report**, not a page to auto-correct.
 - **Ontology is never templated — it's proposed live.** Entity categories, page templates, language convention, and domain glossary are specific to each vault's subject matter. `INIT.md` has the LLM scan the actual source material and propose categories; the human confirms or corrects. Nothing here pre-guesses what your project's "entities" are.
 - **One-way updates.** Improvements discovered in a running vault flow back into this kit manually — the kit never auto-updates a live vault's `CLAUDE.md`. Each vault's schema is its own living document.
