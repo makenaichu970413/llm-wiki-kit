@@ -34,7 +34,7 @@ The project code lives at the path in `wiki-state.json → project_repo`. Code i
 ## Sync (incremental — triggered by `scripts/sync.ps1`/`sync.sh` or manually)
 
 1. Read `wiki-state.json`. Diff the project repo: `git diff --name-status <last_synced_sha>..origin/{{MAIN_BRANCH}}` (plus `git log --oneline` for context). If `last_synced_sha` is `null` but Bootstrap has already run, treat the SHA Bootstrap finished at as the effective baseline rather than blocking — Sync and Bootstrap share one timeline.
-2. **Triage:** ignore noise ({{SYNC_TRIAGE_RULES}}) unless it reveals a data/behavior issue worth recording. Decide which changes carry knowledge.
+2. **Triage:** ignore noise ({{SYNC_TRIAGE_RULES}}) unless it reveals a data/behavior issue worth recording, or the commit message carries the signal prefix ({{SYNC_SIGNAL_PREFIX}}) — that overrides the noise rules outright, no judgment call needed. Decide which changes carry knowledge. A signal-prefixed commit's message often states the *why* directly (the author already knew this mattered); treat that text as authored context to fold into the page, not just a cue to go read the diff.
 3. Map changed files → affected pages via `code_refs` frontmatter and `index.md`. Read only the changed files (and diffs), update the affected pages, flag contradictions per the `⚠️ Superseded` rule.
 4. If a change introduces a new entity worth its own page, create it. If something was deleted, mark the page `> ⚠️ Removed in <sha>` — don't delete pages, history has value.
 5. **Cross-check working memory while you're in there, not just the diff.** A commit range is also a good moment to notice a memory note that's gone stale even though it wasn't touched by this specific diff — Sync's "verify before writing" discipline generalizes past just the files that changed.
@@ -45,19 +45,39 @@ The project code lives at the path in `wiki-state.json → project_repo`. Code i
   "[CHECK]-prefixed commits (data validation runs, not code changes)", "chore:/version-bump
   commits", "formatting-only diffs". Filled in during Init Interview, refined via the
   "set commit noise" flow below.
+
+  {{SYNC_SIGNAL_PREFIX}}: an opt-in commit-message prefix (default `[WIKI]` if the human
+  never picked their own) the human can stamp on a commit to force it through triage
+  regardless of the noise rules — e.g. a commit that would otherwise match a `chore:`
+  noise pattern but actually fixes a subtle bug worth recording. This is a rescue valve,
+  not a gate: commits *without* the prefix are still triaged normally, not skipped by
+  default. Set/changed via the same "set commit noise" flow below.
 -->
+
+## log.md — bootstrap / sync / config prefixes
+
+`bootstrap`, `sync`, and `config` join the log prefix set:
+
+```
+## [YYYY-MM-DD] bootstrap | <subject>
+## [YYYY-MM-DD] sync | <old>..<new> (<subject>)
+## [YYYY-MM-DD] config | <what was tuned — noise rules, signal prefix>
+```
 
 ## Tuning sync noise — trigger phrase: "set commit noise"
 
 The noise rules start rough (often empty — "refine after the first few real Syncs") and this is the defined refine action. When the human says **"set commit noise"** (or any similar phrasing — this is a convention, not a parser):
 
-1. Read the current noise rules from this file's Sync step 2.
+1. Read the current noise rules and signal prefix from this file's Sync step 2.
 2. Scan the tracked repo's recent history (`git log --oneline` since `last_synced_sha`, or the last ~200 commits if that range is thin) and tally recurring patterns: prefix conventions (`chore:`, `[skip ci]`), bot/version-bump commits, formatting-only changes. Spot-check a few commits per pattern to confirm they really carry no knowledge.
 3. Present the observed patterns as a multi-select question (interactive question tool if the environment has one), each labeled with its real frequency (e.g. "chore: prefix — 23/87") — observed data beats generic examples. Selecting nothing keeps the current rules; extra patterns arrive via "Other".
-4. Write the chosen rules back into the Sync triage line of this `CLAUDE.md`, and append a `config |` entry to `log.md`, e.g. `config | sync noise rules set: chore:/version-bump/[skip ci] (from 87-commit scan)`.
+4. Confirm the **signal prefix** in the same round — a single freeform value, not a multi-select (there's one token to agree on, not a set of patterns to tally). Propose `[WIKI]` as the default if none is set yet; if one's already set, ask whether to keep or change it.
+5. Write the chosen noise rules and signal prefix back into the Sync triage line of this `CLAUDE.md`, and append a `config |` entry to `log.md`, e.g. `config | sync noise rules set: chore:/version-bump/[skip ci] (from 87-commit scan); signal prefix: [WIKI]`.
 
 ## `scripts/sync.ps1` / `sync.sh`
 
 Both scripts: read `wiki-state.json`, fetch the tracked repo, diff `last_synced_sha..origin/{{MAIN_BRANCH}}`, and hand the range + changed-file list to a headless `claude -p` run instructed to execute the Sync workflow above, then verify `last_synced_sha` actually advanced.
 
 **`git fetch` can time out or hang** (credential prompt, network issue) — don't let that abort the whole run. If fetch fails, fall back to whatever `origin/{{MAIN_BRANCH}}` already resolves to locally and print a visible warning that the diff may be stale, rather than crashing.
+
+*(dashboard module, if also installed)* after a successful sync, `sync.ps1`/`sync.sh` calls `scripts/dashboard.ps1`/`dashboard.sh` automatically to refresh `wiki/dashboard.html` — best-effort, a dashboard failure warns but never fails the sync itself. See `CLAUDE.dashboard.md`.
