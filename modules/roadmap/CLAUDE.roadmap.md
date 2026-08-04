@@ -32,11 +32,14 @@ kit_version: 0.1.0
 - **Phases** — `## Phase N — <name>`, each containing stories as checkboxes:
 
   ```markdown
-  - [ ] **S2.1 <story title>** (size, depends on S1.3) — what it is, and the
-    acceptance criterion that decides "done".
+  - [ ] **S2.1 <story title>** (size, depends on S1.3) — what it is.
+    - **Given** <precondition/state>, **when** <action>, **then** <expected result>.
+    - Cover the bad paths too, not just the happy path (e.g. **given** invalid
+      input, **when** submitted, **then** rejected with `<error>` — not silently
+      accepted or crashed).
   ```
 
-  Story IDs (`S<phase>.<n>`) are stable handles — other wiki pages and log entries refer to them, so don't renumber existing stories when inserting new ones (append `S2.4`, or suffix `S2.3.1` for a sub-story).
+  Given/when/then is the acceptance criterion — a story isn't "done"-testable without one, and a criterion that only states the happy path leaves the failure behavior to guesswork. A story can have more than one given/when/then line (one per case worth distinguishing); it never has zero. Story IDs (`S<phase>.<n>`) are stable handles — other wiki pages and log entries refer to them, so don't renumber existing stories when inserting new ones (append `S2.4`, or suffix `S2.3.1` for a sub-story).
 - **Exit condition** — one line per phase stating what must be true before the next phase starts. A phase's exit condition is a gate, not a summary — check it before proposing work from the next phase.
 
 ## Progress discipline

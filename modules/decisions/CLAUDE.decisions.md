@@ -44,6 +44,7 @@ Body skeleton — every decision page states:
 - **Context** — what problem forced a choice.
 - **Options considered** — including the rejected ones and why they lost. Rejected options are the most valuable part of the page: they stop the same debate from being re-run from scratch a year later.
 - **Decision** — what was chosen, in one or two sentences.
+- **Constraints** — what this decision puts off-limits going forward (a system nothing may call directly, a pattern that's now forbidden, a boundary later work can't quietly cross without reopening this ADR). Distinct from Consequences below: this is the hard line, not the fallout. Write `none` explicitly if this decision doesn't restrict anything — an omitted section reads as forgotten, not as empty.
 - **Consequences** — what this makes hard to reverse, what follow-up it obligates.
 - Links to the entity pages the decision affects.
 

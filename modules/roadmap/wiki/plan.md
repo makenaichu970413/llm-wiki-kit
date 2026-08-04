@@ -14,6 +14,8 @@ updated: {{INIT_DATE}}
 
 *(no phases defined yet — seed this by telling Claude the phases and stories in chat, or ingest an existing planning document and ask to have it folded in. Each phase becomes its own `## Phase N — <name>` section below, replacing this paragraph. Story shape:)*
 
-<!-- - [ ] **S1.1 <story title>** (size, depends on —) — what it is, and the acceptance criterion that decides "done". -->
+<!-- - [ ] **S1.1 <story title>** (size, depends on —) — what it is.
+     - **Given** <precondition>, **when** <action>, **then** <expected result>.
+     - Cover the bad paths too, not just the happy path. -->
 
 <!-- **Exit condition:** what must be true before Phase 2 starts. -->
