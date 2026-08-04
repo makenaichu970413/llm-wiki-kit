@@ -117,7 +117,7 @@ Ask these in conversation, not as a wall of questions at once — a natural back
    ```
    *(drop whichever module-tagged bullets don't apply to the modules actually installed for this vault — a pure-core vault with no modules keeps only Ingest/Query/`run lint`.)* Fill every `{{PLACEHOLDER}}` from the Step 1 answers, same as `CLAUDE.md`.
 5. **Delete the rest of the kit's own scaffolding from the vault directory** — the vault is initialized in-place inside the copied kit folder, and everything else that only served Init must go so the vault ends up self-contained:
-   - `core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`
+   - `core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`, `plan_dashboard.md` (a leftover module-development plan that should have been deleted when the dashboard module was merged — delete it here regardless of which modules this vault installs)
    - If the kit was **cloned** rather than copied (there's a `.git/` carrying the kit's own history), delete that `.git/` too, so the next step's `git init` starts the vault's history fresh.
    - Keep `.obsidian/` if present (it's the human's local Obsidian config, harmless), the `.gitignore` you already instantiated from `core/.gitignore`, and the `README.md` you just overwrote in the previous step.
    - Yes, this deletes `INIT.md` itself mid-run — that's fine: you've already read it, and Steps 3–5 are in your context. Don't defer the cleanup to "after everything else"; it must happen before `git init` so no kit file ever enters the vault's history.
@@ -134,7 +134,7 @@ Ask these in conversation, not as a wall of questions at once — a natural back
 2b. *(dashboard only)* Run `scripts/dashboard.ps1` (or `.sh`) once as a dry run — confirm `wiki/dashboard.html` is created without error (a freshly-Init'd vault has an empty `log.md` beyond the `init` entry and no entity pages yet, so expect an all-zeros/empty-state page, not a crash).
 3. Read the assembled `CLAUDE.md` once, start to finish, as if you were a fresh session with no memory of this Init conversation — does it read as a complete, coherent schema on its own? If something only makes sense with Init-conversation context, fix it now.
 4. Read the new `README.md` — it should describe *this vault* (project name, description, Day-2 phrases matching the modules actually installed) with zero mentions of the kit's own Quickstart, repo layout, or version status. If any kit-repo language survived from the original, fix it now.
-5. List the vault root (including hidden files) — none of the kit's scaffolding may remain (`core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`), `README.md` should be the vault-specific one from Step 2, and `git log` should show only the vault's own initial commit, no kit history.
+5. List the vault root (including hidden files) — none of the kit's scaffolding may remain (`core/`, `modules/`, `examples/`, `INIT.md`, `IDEA.md`, `CHANGELOG.md`, `kit-assets/`, `plan_dashboard.md`), `README.md` should be the vault-specific one from Step 2, and `git log` should show only the vault's own initial commit, no kit history.
 
 **Done when:** all five checks pass.
 
