@@ -4,7 +4,7 @@ type: log
 
 # Log
 
-> Append-only — entries are never deleted or rewritten. Prefix format: `## [YYYY-MM-DD] <op> | <subject>` where op ∈ init | ingest | query | answer | question | lint (installed modules add more: bootstrap | sync | config with code-sync, decision with decisions, plan with roadmap).
+> Append-only — entries are never deleted or rewritten. Prefix format: `## [YYYY-MM-DD] <op> | <subject>` where op ∈ init | ingest | query | answer | question | lint (installed modules add more: bootstrap | sync | config with code-sync, decision with decisions, plan with roadmap, link with related-wikis).
 > Last 5 entries: `grep "^## \[" log.md | tail -5`
 > Before writing a new entry, grep headers rather than reading the whole file — skip the body of any header tagged `⚠️ Archived <date>` unless this task needs that entry's detail. See CLAUDE.md's log.md / Lint sections for the tagging rule.
 
