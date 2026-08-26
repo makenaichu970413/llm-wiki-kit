@@ -37,6 +37,8 @@ $isDecisions = Test-Path (Join-Path $wikiDir "decisions") -PathType Container
 if ($isDecisions) { $installedModules += "decisions" }
 $isRoadmap = Test-Path (Join-Path $wikiDir "plan.md") -PathType Leaf
 if ($isRoadmap) { $installedModules += "roadmap" }
+$isTickets = Test-Path (Join-Path $wikiDir "tickets") -PathType Container
+if ($isTickets) { $installedModules += "tickets" }
 
 # --- Log stats ---
 $logPath = Join-Path $wikiDir "log.md"
@@ -327,6 +329,9 @@ if ($isCodeSync) {
 }
 if ($isDecisions) {
     $buttons += @{ label = "record decision"; phrase = "record decision" }
+}
+if ($isTickets) {
+    $buttons += @{ label = "create ticket"; phrase = "create ticket" }
 }
 $buttonsHtml = ($buttons | ForEach-Object {
     "<button class=`"copy-btn`" data-copy=`"$(HtmlEscape $_.phrase)`">$(HtmlEscape $_.label)</button>"
