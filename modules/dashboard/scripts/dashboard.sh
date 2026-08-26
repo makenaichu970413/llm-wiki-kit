@@ -43,6 +43,8 @@ is_decisions=0
 if [[ -d "$wiki_dir/decisions" ]]; then is_decisions=1; fi
 is_roadmap=0
 if [[ -f "$wiki_dir/plan.md" ]]; then is_roadmap=1; fi
+is_tickets=0
+if [[ -d "$wiki_dir/tickets" ]]; then is_tickets=1; fi
 
 # --- Log stats ---
 log_path="$wiki_dir/log.md"
@@ -424,6 +426,7 @@ modules_html="<li>dashboard</li>"
 if (( is_code_sync )); then modules_html="<li>code-sync</li>$modules_html"; fi
 if (( is_decisions )); then modules_html="$modules_html<li>decisions</li>"; fi
 if (( is_roadmap )); then modules_html="$modules_html<li>roadmap</li>"; fi
+if (( is_tickets )); then modules_html="$modules_html<li>tickets</li>"; fi
 cat > "$modules_card_file" <<EOF
 <div class="card">
   <h2>🧩 Installed modules</h2>
@@ -444,6 +447,10 @@ fi
 if (( is_decisions )); then
     buttons_html="$buttons_html
 <button class=\"copy-btn\" data-copy=\"record decision\">record decision</button>"
+fi
+if (( is_tickets )); then
+    buttons_html="$buttons_html
+<button class=\"copy-btn\" data-copy=\"create ticket\">create ticket</button>"
 fi
 cat > "$buttons_card_file" <<EOF
 <div class="card">
