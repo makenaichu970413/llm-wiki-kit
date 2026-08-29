@@ -39,6 +39,8 @@ $isRoadmap = Test-Path (Join-Path $wikiDir "plan.md") -PathType Leaf
 if ($isRoadmap) { $installedModules += "roadmap" }
 $isTickets = Test-Path (Join-Path $wikiDir "tickets") -PathType Container
 if ($isTickets) { $installedModules += "tickets" }
+$isFlows = Test-Path (Join-Path $wikiDir "flows") -PathType Container
+if ($isFlows) { $installedModules += "flows" }
 
 # --- Log stats ---
 $logPath = Join-Path $wikiDir "log.md"
@@ -332,6 +334,9 @@ if ($isDecisions) {
 }
 if ($isTickets) {
     $buttons += @{ label = "create ticket"; phrase = "create ticket" }
+}
+if ($isFlows) {
+    $buttons += @{ label = "flow it"; phrase = "flow it" }
 }
 $buttonsHtml = ($buttons | ForEach-Object {
     "<button class=`"copy-btn`" data-copy=`"$(HtmlEscape $_.phrase)`">$(HtmlEscape $_.label)</button>"

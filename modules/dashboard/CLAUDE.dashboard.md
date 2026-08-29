@@ -50,12 +50,13 @@ All of it computed from files on disk, no free-form reading required:
    - Orphan pages (no inbound `[[link]]`, excluding `overview.md`, `index.md`, `log.md`, `question.md` — hub files, not entities).
    - Count of `⚠️ Superseded` markers across wiki pages — **informational only** (per the core page-format rule they're history annotations, not open issues), so this count never degrades the health banner.
 6. **Knowledge graph** — an Obsidian-style force-directed graph of every wiki page (node) and the `[[wikilinks]]` between them that resolve to a real page (edge; red links aren't drawn as edges — they already show up in the Health check above). Nodes are colored by their top-level `wiki/` subfolder and sized by inbound-link count (degree); drag a node, drag the background to pan, scroll to zoom, double-click to reset. The layout itself (node positions) is a live client-side physics simulation, not something the script computes — the script only computes the node/edge *data* (ids, labels, groups, degrees), deterministically, the same as every other card.
-7. **Installed modules** — which optional modules this vault has installed (detected by marker files: `wiki-state.json` for code-sync, `wiki/decisions/` for decisions, `wiki/plan.md` for roadmap, `wiki/tickets/` for tickets), since vaults built from this kit can differ.
+7. **Installed modules** — which optional modules this vault has installed (detected by marker files: `wiki-state.json` for code-sync, `wiki/decisions/` for decisions, `wiki/plan.md` for roadmap, `wiki/tickets/` for tickets, `wiki/flows/` for flows), since vaults built from this kit can differ.
 8. **Daily Use buttons** — copy-to-clipboard only, nothing executes from the page itself:
    - Universal: `process it`, `archive this`, `run lint`.
    - *(code-sync only)*: `run sync`, `set commit noise` (also sets the signal-prefix override).
    - *(decisions only)*: `record decision`.
    - *(tickets only)*: `create ticket`.
+   - *(flows only)*: `flow it`.
    - Query has no fixed trigger phrase ("just ask") — the dashboard notes this instead of faking a button for it.
 
 The generated page is a **snapshot**, not a live view — only as fresh as the last time the script ran. Re-run it any time with "run dashboard", or rely on the automatic post-sync refresh in code-sync vaults.
